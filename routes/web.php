@@ -1,8 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
+
+Volt::route('/apply', 'pages.application.personal-background')
+    ->name('application.create');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
