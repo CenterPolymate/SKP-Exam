@@ -1,5 +1,6 @@
 *.log
 .DS_Store
+desktop.ini
 .env
 .env.backup
 .env.production
@@ -20,6 +21,11 @@
 /public/storage
 /storage/*.key
 /storage/pail
+
+# dompdf's auto-generated font cache (regenerated on first PDF render)
+/storage/fonts/installed-fonts.json
+/storage/fonts/Helvetica*.json
+/storage/fonts/sarabun_*
 /vendor
 _ide_helper.php
 Homestead.json

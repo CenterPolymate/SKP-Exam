@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Applicant extends Model
 {
@@ -141,5 +142,40 @@ class Applicant extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function education(): HasMany
+    {
+        return $this->hasMany(ApplicantEducation::class)->orderByRaw("
+            case degree_level
+                when 'junior_high' then 1
+                when 'senior_high_vocational_cert' then 2
+                when 'diploma_high_vocational' then 3
+                when 'vocational' then 4
+                when 'bachelor' then 5
+                when 'master' then 6
+                else 7
+            end
+        ");
+    }
+
+    public function languages(): HasMany
+    {
+        return $this->hasMany(ApplicantLanguage::class);
+    }
+
+    public function workHistories(): HasMany
+    {
+        return $this->hasMany(ApplicantWorkHistory::class)->orderBy('order_no');
+    }
+
+    public function references(): HasMany
+    {
+        return $this->hasMany(ApplicantReference::class)->orderBy('order_no');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ApplicantDocument::class);
     }
 }
