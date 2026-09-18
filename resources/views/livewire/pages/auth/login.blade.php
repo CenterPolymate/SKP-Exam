@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('layouts.admin-login')] class extends Component
 {
     public LoginForm $form;
 
@@ -25,47 +25,47 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <h1 class="text-2xl font-bold text-stone-900">เข้าสู่ระบบ</h1>
+    <p class="mt-1 text-sm text-stone-500">กรอกบัญชีเจ้าหน้าที่เพื่อเข้าใช้งาน</p>
 
-    <form wire:submit="login">
-        <!-- Email Address -->
+    <!-- Session Status -->
+    <x-auth-session-status class="mt-4" :status="session('status')" />
+
+    <form wire:submit="login" class="mt-8 space-y-5">
+        <!-- Username -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
+            <x-input-label for="username" value="ชื่อผู้ใช้" />
+            <x-text-input wire:model="form.username" id="username" class="block mt-1 w-full px-4 py-3" type="text" name="username" placeholder="กรอกชื่อผู้ใช้" required autofocus autocomplete="username" />
+            <x-input-error :messages="$errors->get('form.username')" class="mt-2" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
+        <div>
+            <x-input-label for="password" value="รหัสผ่าน" />
+            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full px-4 py-3"
                             type="password"
                             name="password"
+                            placeholder="กรอกรหัสผ่าน"
                             required autocomplete="current-password" />
-
             <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
+        <!-- Remember Me + Forgot password -->
+        <div class="flex items-center justify-between">
             <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-stone-300 text-[#BA772A] shadow-sm focus:ring-[#BA772A]" name="remember">
+                <span class="ms-2 text-sm text-stone-600">จำฉันไว้</span>
             </label>
-        </div>
 
-        <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}" wire:navigate>
-                    {{ __('Forgot your password?') }}
+                <a class="rounded-md text-sm font-medium text-[#BA772A] hover:text-[#a6661f] focus:outline-none focus:ring-2 focus:ring-[#BA772A] focus:ring-offset-2" href="{{ route('password.request') }}" wire:navigate>
+                    ลืมรหัสผ่าน?
                 </a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <button type="submit" class="w-full rounded-lg bg-[#BA772A] px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-[#a6661f] focus:outline-none focus:ring-2 focus:ring-[#BA772A] focus:ring-offset-2">
+            เข้าสู่ระบบ
+        </button>
     </form>
 </div>

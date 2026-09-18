@@ -99,6 +99,15 @@ class Applicant extends Model
         'privacy_policy_consent',
         'signature_name',
         'signed_at',
+
+        // การตรวจสอบของ HR
+        'status',
+        'hr_blacklist_checked',
+        'hr_criminal_checked',
+        'hr_social_checked',
+        'hr_verification_note',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected function casts(): array
