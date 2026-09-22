@@ -2,18 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ExamAssignment extends Model
+class ExamAssignment extends Model implements AuthenticatableContract
 {
+    use Authenticatable;
+
     protected $fillable = [
         'applicant_id',
         'username',
-        'password_hash',
+        'password_encrypted',
         'exam_deadline',
         'created_by',
+    ];
+
+    protected $hidden = [
+        'password_encrypted',
     ];
 
     protected function casts(): array

@@ -5,8 +5,8 @@ use App\Models\Applicant;
 use App\Models\Exam;
 use App\Models\ExamAssignment;
 use App\Models\Position;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -30,6 +30,10 @@ new #[Layout('layouts.admin')] class extends Component
     public string $examDeadline = '';
 
     public ?array $generatedResult = null;
+
+    public ?int $viewingForId = null;
+
+    public ?string $viewingNewPassword = null;
 
     public function search_(): void
     {
@@ -99,6 +103,45 @@ new #[Layout('layouts.admin')] class extends Component
     public function generatingApplicant(): ?Applicant
     {
         return $this->generatingForId ? Applicant::with('position')->find($this->generatingForId) : null;
+    }
+
+    public function viewingApplicant(): ?Applicant
+    {
+        return $this->viewingForId ? Applicant::with(['position', 'examAssignment'])->find($this->viewingForId) : null;
+    }
+
+    public function decryptedPassword(ExamAssignment $assignment): ?string
+    {
+        try {
+            return Crypt::decryptString($assignment->password_encrypted);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public function openView(int $applicantId): void
+    {
+        $this->viewingForId = $applicantId;
+        $this->viewingNewPassword = null;
+    }
+
+    public function closeView(): void
+    {
+        $this->reset('viewingForId', 'viewingNewPassword');
+    }
+
+    public function resetPassword(): void
+    {
+        $applicant = $this->viewingApplicant();
+        $assignment = $applicant?->examAssignment;
+
+        if (! $assignment) {
+            return;
+        }
+
+        $newPassword = Str::password(10, symbols: false);
+        $assignment->update(['password_encrypted' => Crypt::encryptString($newPassword)]);
+        $this->viewingNewPassword = $newPassword;
     }
 
     public function mandatoryExamsFor(Applicant $applicant)
@@ -178,7 +221,7 @@ new #[Layout('layouts.admin')] class extends Component
             $assignment = ExamAssignment::create([
                 'applicant_id' => $applicant->id,
                 'username' => $username,
-                'password_hash' => Hash::make($password),
+                'password_encrypted' => Crypt::encryptString($password),
                 'exam_deadline' => $this->examDeadline,
                 'created_by' => auth()->id(),
             ]);
@@ -295,10 +338,10 @@ new #[Layout('layouts.admin')] class extends Component
                             </td>
                             <td class="px-5 py-3 text-right">
                                 @if ($applicant->status === 'code_generated')
-                                    <a href="{{ route('admin.applicants.show', $applicant) }}" wire:navigate
-                                       class="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-[#BA772A] hover:text-[#BA772A]">
+                                    <button wire:click="openView({{ $applicant->id }})" type="button"
+                                            class="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-[#BA772A] hover:text-[#BA772A]">
                                         ดูรายละเอียด
-                                    </a>
+                                    </button>
                                 @else
                                     <button wire:click="openGenerate({{ $applicant->id }})" type="button"
                                             class="rounded-lg border border-[#BA772A] px-3 py-1.5 text-xs font-medium text-[#BA772A] hover:bg-amber-50">
@@ -474,6 +517,83 @@ new #[Layout('layouts.admin')] class extends Component
                         </button>
                     </div>
                 @endif
+            </div>
+        </div>
+    @endif
+
+    {{-- View exam account details modal --}}
+    @if ($viewingForId)
+        @php
+            $viewApplicant = $this->viewingApplicant();
+            $assignment = $viewApplicant?->examAssignment;
+            $currentPassword = $viewingNewPassword ?? ($assignment ? $this->decryptedPassword($assignment) : null);
+        @endphp
+        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                <h3 class="text-lg font-semibold text-stone-900">รายละเอียดบัญชีเข้าสอบ</h3>
+                <p class="mt-1 text-sm text-stone-500">
+                    {{ $viewApplicant->title_th }}{{ $viewApplicant->first_name_th }} {{ $viewApplicant->last_name_th }}
+                    &middot; {{ $viewApplicant->position->title ?? '-' }}
+                </p>
+
+                @if (! $assignment)
+                    <p class="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">ไม่พบข้อมูลบัญชีเข้าสอบ</p>
+                @else
+                    <div class="mt-4 space-y-3" x-data="{ copied: null }">
+                        <div class="flex items-center justify-between rounded-lg border border-stone-200 px-3 py-2">
+                            <div>
+                                <p class="text-xs text-stone-400">ชื่อผู้ใช้</p>
+                                <p class="text-sm font-medium text-stone-800">{{ $assignment->username }}</p>
+                            </div>
+                            <button type="button" @click="navigator.clipboard.writeText('{{ $assignment->username }}'); copied = 'username'; setTimeout(() => copied = null, 1500)"
+                                    class="shrink-0 rounded-md border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50">
+                                <span x-text="copied === 'username' ? 'คัดลอกแล้ว' : 'คัดลอก'"></span>
+                            </button>
+                        </div>
+
+                        @if ($currentPassword)
+                            <div class="flex items-center justify-between rounded-lg border border-stone-200 px-3 py-2">
+                                <div>
+                                    <p class="text-xs text-stone-400">รหัสผ่าน</p>
+                                    <p class="text-sm font-medium text-stone-800">{{ $currentPassword }}</p>
+                                </div>
+                                <button type="button" @click="navigator.clipboard.writeText('{{ $currentPassword }}'); copied = 'password'; setTimeout(() => copied = null, 1500)"
+                                        class="shrink-0 rounded-md border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50">
+                                    <span x-text="copied === 'password' ? 'คัดลอกแล้ว' : 'คัดลอก'"></span>
+                                </button>
+                            </div>
+                            @if ($viewingNewPassword)
+                                <p class="text-xs text-amber-700">⚠️ นี่คือรหัสผ่านใหม่ กรุณาแจ้งผู้สมัครอีกครั้ง</p>
+                            @endif
+                        @else
+                            <div class="rounded-lg border border-stone-200 px-3 py-2">
+                                <p class="text-xs text-stone-400">รหัสผ่าน</p>
+                                <p class="text-sm text-stone-400">บัญชีนี้สร้างไว้ก่อนระบบรองรับการดูรหัสผ่านซ้ำ กรุณาสร้างรหัสผ่านใหม่</p>
+                                <button type="button" wire:click="resetPassword" wire:loading.attr="disabled" wire:target="resetPassword"
+                                        class="mt-2 rounded-lg border border-[#BA772A] px-3 py-1.5 text-xs font-medium text-[#BA772A] hover:bg-amber-50 disabled:opacity-60">
+                                    สร้างรหัสผ่านใหม่
+                                </button>
+                            </div>
+                        @endif
+
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-stone-200 px-3 py-2">
+                            <div class="min-w-0">
+                                <p class="text-xs text-stone-400">ลิงก์เข้าสอบ</p>
+                                <p class="truncate text-sm font-medium text-stone-800">{{ url('/exam/login') }}</p>
+                            </div>
+                            <button type="button" @click="navigator.clipboard.writeText('{{ url('/exam/login') }}'); copied = 'link'; setTimeout(() => copied = null, 1500)"
+                                    class="shrink-0 rounded-md border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50">
+                                <span x-text="copied === 'link' ? 'คัดลอกแล้ว' : 'คัดลอก'"></span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" wire:click="closeView" class="rounded-lg px-5 py-2 text-sm font-semibold text-stone-600 hover:bg-stone-100">
+                        ปิด
+                    </button>
+                </div>
             </div>
         </div>
     @endif

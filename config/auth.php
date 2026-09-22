@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ExamAssignment;
 use App\Models\User;
 
 return [
@@ -42,6 +43,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'exam_applicant' => [
+            'driver' => 'session',
+            'provider' => 'exam_assignments',
+        ],
     ],
 
     /*
@@ -71,6 +77,11 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'exam_assignments' => [
+            'driver' => 'eloquent',
+            'model' => ExamAssignment::class,
+        ],
     ],
 
     /*

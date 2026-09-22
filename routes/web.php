@@ -36,8 +36,36 @@ Volt::route('admin/exams/{exam}/edit', 'pages.admin.exam-form')
     ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.exams.edit');
 
+Volt::route('admin/exam-review', 'pages.admin.exam-review')
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('admin.exam-review.index');
+
+Volt::route('admin/exam-review/attempts/{attempt}/grade', 'pages.admin.exam-attempt-grade')
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('admin.exam-review.grade');
+
+Volt::route('admin/exam-review/{applicant}', 'pages.admin.exam-review-detail')
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('admin.exam-review.show');
+
 Route::view('profile', 'profile')
     ->middleware(['auth', 'admin'])
     ->name('profile');
+
+Volt::route('exam/login', 'pages.exam.login')
+    ->middleware('guest:exam_applicant')
+    ->name('exam.login');
+
+Volt::route('exam/dashboard', 'pages.exam.dashboard')
+    ->middleware('auth:exam_applicant')
+    ->name('exam.dashboard');
+
+Volt::route('exam/attempts/{attempt}/start', 'pages.exam.attempt-start')
+    ->middleware('auth:exam_applicant')
+    ->name('exam.attempts.start');
+
+Volt::route('exam/attempts/{attempt}/take', 'pages.exam.attempt-take')
+    ->middleware('auth:exam_applicant')
+    ->name('exam.attempts.take');
 
 require __DIR__.'/auth.php';
