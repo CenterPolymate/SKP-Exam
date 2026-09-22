@@ -48,6 +48,10 @@ Volt::route('admin/exam-review/{applicant}', 'pages.admin.exam-review-detail')
     ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.exam-review.show');
 
+Volt::route('admin/summary', 'pages.admin.summary')
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('admin.summary.index');
+
 Route::view('profile', 'profile')
     ->middleware(['auth', 'admin'])
     ->name('profile');

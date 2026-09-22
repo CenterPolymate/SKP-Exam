@@ -5,7 +5,7 @@
         ['label' => 'คลังข้อสอบ', 'route' => 'admin.exams.index', 'match' => 'admin.exams.*', 'available' => true],
         ['label' => 'จัดการบัญชีผู้สมัคร', 'route' => 'admin.applicant-accounts.index', 'available' => true],
         ['label' => 'ตรวจข้อสอบ', 'route' => 'admin.exam-review.index', 'match' => 'admin.exam-review.*', 'available' => true],
-        ['label' => 'สรุปผล', 'route' => null, 'available' => false],
+        ['label' => 'สรุปผล', 'route' => 'admin.summary.index', 'available' => true],
     ];
 @endphp
 
