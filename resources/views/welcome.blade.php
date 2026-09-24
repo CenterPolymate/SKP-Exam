@@ -19,8 +19,61 @@
 
             <div
                 class="w-full max-w-3xl flex flex-col items-center text-center"
-                x-data="{ panel: 'menu', contactOpen: false }"
+                x-data="{
+                    panel: 'menu',
+                    contactOpen: false,
+                    lang: (localStorage.getItem('landingLang') === 'en') ? 'en' : 'th',
+                    strings: {
+                        th: {
+                            docTitle: '{{ config('app.name', 'Grand SK') }} - ระบบรับสมัครงาน',
+                            welcomePrefix: 'ยินดีต้อนรับสู่',
+                            applicantsHeading: 'ผู้สมัครงาน',
+                            applicantsSub: 'มาร่วมเป็นส่วนหนึ่งของครอบครัวเรากันเถอะ!',
+                            applyBtn: 'สมัครงาน',
+                            viewCompanyBtn: 'ดูข้อมูลบริษัท',
+                            back: 'กลับ',
+                            companyHeading: 'ข้อมูลบริษัท',
+                            companySub: 'เลือกบริษัทในเครือที่ต้องการดูข้อมูล',
+                            needHelp: 'ต้องการความช่วยเหลือ?',
+                            contactUs: 'ติดต่อเรา',
+                            close: 'ปิด',
+                            phoneLabel: 'โทร (เจ้าหน้าที่ HR)',
+                        },
+                        en: {
+                            docTitle: '{{ config('app.name', 'Grand SK') }} - Job Application System',
+                            welcomePrefix: 'Welcome to',
+                            applicantsHeading: 'Job Applicants',
+                            applicantsSub: 'Come join our family!',
+                            applyBtn: 'Apply for a Job',
+                            viewCompanyBtn: 'View Company Info',
+                            back: 'Back',
+                            companyHeading: 'Company Information',
+                            companySub: 'Select a subsidiary to view its information',
+                            needHelp: 'Need help?',
+                            contactUs: 'Contact Us',
+                            close: 'Close',
+                            phoneLabel: 'Phone (HR Staff)',
+                        },
+                    },
+                    t(key) { return this.strings[this.lang][key] ?? key; },
+                    setLang(l) { this.lang = l; localStorage.setItem('landingLang', l); document.cookie = 'landingLang=' + l + '; path=/; max-age=31536000; samesite=lax'; document.title = this.t('docTitle'); },
+                }"
+                x-init="document.title = t('docTitle')"
             >
+
+                {{-- Language switcher --}}
+                <div class="fixed right-4 top-4 z-40 flex items-center gap-1 rounded-full bg-white/90 p-1 shadow-md ring-1 ring-black/5 backdrop-blur">
+                    <button type="button" @click="setLang('th')"
+                            :class="lang === 'th' ? 'bg-amber-700 text-white' : 'text-stone-500 hover:text-stone-700'"
+                            class="rounded-full px-3 py-1 text-xs font-semibold transition">
+                        ไทย
+                    </button>
+                    <button type="button" @click="setLang('en')"
+                            :class="lang === 'en' ? 'bg-amber-700 text-white' : 'text-stone-500 hover:text-stone-700'"
+                            class="rounded-full px-3 py-1 text-xs font-semibold transition">
+                        EN
+                    </button>
+                </div>
 
                 {{-- Grand SK group logo --}}
                 <img
@@ -38,7 +91,7 @@
 
                 {{-- Welcome heading --}}
                 <h1 class="mt-10 text-2xl sm:text-3xl font-semibold text-stone-800">
-                    ยินดีต้อนรับสู่ <span class="text-amber-700">GRAND SK</span>
+                    <span x-text="t('welcomePrefix')"></span> <span class="text-amber-700">GRAND SK</span>
                 </h1>
 
                 {{-- Tagline --}}
@@ -56,8 +109,8 @@
 
                     {{-- Main menu panel --}}
                     <div x-show="panel === 'menu'" x-cloak>
-                        <h2 class="text-lg font-semibold text-amber-700">ผู้สมัครงาน</h2>
-                        <p class="mt-1 text-sm text-stone-500">มาร่วมเป็นส่วนหนึ่งของครอบครัวเรากันเถอะ!</p>
+                        <h2 class="text-lg font-semibold text-amber-700" x-text="t('applicantsHeading')"></h2>
+                        <p class="mt-1 text-sm text-stone-500" x-text="t('applicantsSub')"></p>
 
                         <div class="mt-6 flex flex-col gap-3">
                             <a
@@ -66,7 +119,7 @@
                                 class="group flex items-center gap-3 rounded-lg border border-stone-200 px-4 py-3 text-left transition hover:border-amber-500 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                             >
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"></span>
-                                <span class="text-sm font-medium text-stone-700 group-hover:text-amber-700">สมัครงาน</span>
+                                <span class="text-sm font-medium text-stone-700 group-hover:text-amber-700" x-text="t('applyBtn')"></span>
                             </a>
 
                             <button
@@ -75,7 +128,7 @@
                                 class="group flex items-center gap-3 rounded-lg border border-stone-200 px-4 py-3 text-left transition hover:border-amber-500 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                             >
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"></span>
-                                <span class="text-sm font-medium text-stone-700 group-hover:text-amber-700">ดูข้อมูลบริษัท</span>
+                                <span class="text-sm font-medium text-stone-700 group-hover:text-amber-700" x-text="t('viewCompanyBtn')"></span>
                             </button>
                         </div>
                     </div>
@@ -87,13 +140,13 @@
                                 type="button"
                                 @click="panel = 'menu'"
                                 class="shrink-0 rounded-full p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                aria-label="กลับ"
+                                :aria-label="t('back')"
                             >
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z" clip-rule="evenodd" /></svg>
                             </button>
-                            <h2 class="text-lg font-semibold text-amber-700">ข้อมูลบริษัท</h2>
+                            <h2 class="text-lg font-semibold text-amber-700" x-text="t('companyHeading')"></h2>
                         </div>
-                        <p class="mt-1 text-sm text-stone-500">เลือกบริษัทในเครือที่ต้องการดูข้อมูล</p>
+                        <p class="mt-1 text-sm text-stone-500" x-text="t('companySub')"></p>
 
                         <div class="mt-6 flex flex-col gap-3">
                             <a href="https://grandsk.co.th/" target="_blank" rel="noopener noreferrer"
@@ -120,8 +173,8 @@
                     </div>
 
                     <div class="mt-6 border-t border-stone-100 pt-4 text-xs text-stone-400">
-                        ต้องการความช่วยเหลือ?
-                        <button type="button" @click="contactOpen = true" class="font-semibold text-stone-600 underline decoration-stone-300 underline-offset-2 hover:text-amber-700">ติดต่อเรา</button>
+                        <span x-text="t('needHelp')"></span>
+                        <button type="button" @click="contactOpen = true" class="font-semibold text-stone-600 underline decoration-stone-300 underline-offset-2 hover:text-amber-700" x-text="t('contactUs')"></button>
                     </div>
                 </div>
 
@@ -155,12 +208,12 @@
                         class="relative w-full max-w-sm rounded-2xl bg-white p-8 text-left shadow-xl"
                     >
                         <div class="flex items-start justify-between">
-                            <h3 class="text-lg font-semibold text-amber-700">ติดต่อเรา</h3>
+                            <h3 class="text-lg font-semibold text-amber-700" x-text="t('contactUs')"></h3>
                             <button
                                 type="button"
                                 @click="contactOpen = false"
                                 class="rounded-full p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                aria-label="ปิด"
+                                :aria-label="t('close')"
                             >
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
                             </button>
@@ -182,7 +235,7 @@
                                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h1.148a1.5 1.5 0 0 1 1.465 1.175l.716 3.223a1.5 1.5 0 0 1-.826 1.678l-1.145.573a11.03 11.03 0 0 0 5.516 5.516l.573-1.145a1.5 1.5 0 0 1 1.678-.826l3.223.716A1.5 1.5 0 0 1 18 14.352V15.5a1.5 1.5 0 0 1-1.5 1.5H15c-7.18 0-13-5.82-13-13V3.5Z"/></svg>
                                 </span>
                                 <div>
-                                    <p class="text-stone-400">โทร (เจ้าหน้าที่ HR)</p>
+                                    <p class="text-stone-400" x-text="t('phoneLabel')"></p>
                                     <a href="tel:0863252003" class="font-medium text-stone-700 hover:text-amber-700">086-325-2003</a>
                                 </div>
                             </div>

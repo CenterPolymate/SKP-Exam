@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
+        // landingLang ถูกตั้งค่าฝั่ง client ด้วย JS ธรรมดา (Alpine) จึงไม่เข้ารหัส
+        // เพื่อให้ Laravel อ่านค่าได้ตรงกับที่ browser ส่งมา
+        $middleware->encryptCookies(except: ['landingLang']);
+
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('exam/*')
             ? route('exam.login')
             : route('login'));

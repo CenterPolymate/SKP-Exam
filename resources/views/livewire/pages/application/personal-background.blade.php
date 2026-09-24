@@ -17,6 +17,9 @@ new #[Layout('layouts.application')] class extends Component
 {
     use WithFileUploads;
 
+    // ภาษาที่เลือกไว้จากหน้า landing page (ผ่านคุกกี้ landingLang)
+    public string $locale = 'th';
+
     // ลำดับขั้นตอนของ wizard ("done" = จบเท่าที่พัฒนาไว้ตอนนี้)
     public string $step = 'personal';
     // ตำแหน่งงานที่สมัคร
@@ -45,7 +48,7 @@ new #[Layout('layouts.application')] class extends Component
     public $congenital_disease_detail = '';
     public $has_criminal_record = '';
     public $criminal_record_detail = '';
-    public $country = 'ไทย';
+    public $country = '';
     public $hometown = '';
 
     // ติดต่อ
@@ -125,6 +128,8 @@ new #[Layout('layouts.application')] class extends Component
 
     public function mount(): void
     {
+        $this->locale = request()->cookie('landingLang') === 'en' ? 'en' : 'th';
+
         for ($i = 1; $i <= 2; $i++) {
             $this->references[$i] = [
                 'name' => '',
@@ -174,6 +179,211 @@ new #[Layout('layouts.application')] class extends Component
         }
     }
 
+    // พจนานุกรมข้อความ UI สำหรับขั้นตอน "ประวัติส่วนตัว" (ยังไม่ครอบคลุมขั้นตอนอื่น)
+    protected function tDict(): array
+    {
+        return [
+            'step_personal' => ['th' => 'ประวัติส่วนตัว', 'en' => 'Personal Background'],
+            'step_education' => ['th' => 'ประวัติการศึกษา', 'en' => 'Education Background'],
+            'step_language' => ['th' => 'ความสามารถด้านภาษา', 'en' => 'Language Skills'],
+            'step_work' => ['th' => 'ประวัติการทำงาน', 'en' => 'Employment History'],
+            'step_other' => ['th' => 'ข้อมูลอื่นๆ & เอกสาร', 'en' => 'Other Info & Documents'],
+            'step_schedule' => ['th' => 'วัน-เวลาทำงาน', 'en' => 'Work Schedule'],
+            'step_review' => ['th' => 'ตรวจสอบข้อมูล', 'en' => 'Review'],
+
+            'personal_subtitle' => ['th' => 'กรอกข้อมูลให้ครบถ้วนและตรงตามความเป็นจริง', 'en' => 'Please complete all fields accurately and truthfully'],
+
+            'position_label' => ['th' => 'ตำแหน่งที่ต้องการ', 'en' => 'Desired Position'],
+            'position_placeholder' => ['th' => '--เลือก--', 'en' => '--Select--'],
+            'select_placeholder' => ['th' => '--เลือก--', 'en' => '--Select--'],
+            'expected_salary' => ['th' => 'เงินเดือนที่ต้องการ (บาท)', 'en' => 'Expected Salary (THB)'],
+
+            'date_of_birth' => ['th' => 'วันเดือนปีเกิด', 'en' => 'Date of Birth'],
+            'age' => ['th' => 'อายุ', 'en' => 'Age'],
+            'nationality' => ['th' => 'สัญชาติ', 'en' => 'Nationality'],
+            'nationality_ph' => ['th' => 'เช่น ไทย', 'en' => 'e.g. Thai'],
+            'ethnicity' => ['th' => 'เชื้อชาติ', 'en' => 'Race'],
+            'ethnicity_ph' => ['th' => 'เช่น ไทย', 'en' => 'e.g. Thai'],
+            'religion' => ['th' => 'ศาสนา', 'en' => 'Religion'],
+            'religion_ph' => ['th' => 'เช่น พุทธ', 'en' => 'e.g. Buddhist'],
+            'gender' => ['th' => 'เพศ', 'en' => 'Gender'],
+            'gender_male' => ['th' => 'ชาย', 'en' => 'Male'],
+            'gender_female' => ['th' => 'หญิง', 'en' => 'Female'],
+            'gender_other' => ['th' => 'อื่นๆ', 'en' => 'Other'],
+            'height' => ['th' => 'ส่วนสูง (ซม.)', 'en' => 'Height (cm)'],
+            'height_ph' => ['th' => 'ส่วนสูง', 'en' => 'Height'],
+            'weight' => ['th' => 'น้ำหนัก (กก.)', 'en' => 'Weight (kg)'],
+            'weight_ph' => ['th' => 'น้ำหนัก', 'en' => 'Weight'],
+            'has_congenital_disease' => ['th' => 'มีโรคประจำตัว', 'en' => 'Congenital Disease'],
+            'yes' => ['th' => 'มี', 'en' => 'Yes'],
+            'no' => ['th' => 'ไม่มี', 'en' => 'No'],
+            'congenital_detail' => ['th' => 'รายละเอียดโรคประจำตัว', 'en' => 'Disease Details'],
+            'has_criminal_record' => ['th' => 'มีประวัติอาชญากรรม', 'en' => 'Criminal Record'],
+            'criminal_yes' => ['th' => 'เคยมี', 'en' => 'Yes'],
+            'criminal_detail' => ['th' => 'รายละเอียดประวัติอาชญากรรม', 'en' => 'Criminal Record Details'],
+            'country' => ['th' => 'ประเทศ', 'en' => 'Country'],
+            'country_ph' => ['th' => 'เช่น ไทย', 'en' => 'e.g. Thailand'],
+            'hometown' => ['th' => 'ภูมิลำเนา', 'en' => 'Hometown'],
+            'hometown_ph' => ['th' => 'จังหวัด', 'en' => 'Province'],
+
+            'email' => ['th' => 'Email', 'en' => 'Email'],
+            'phone' => ['th' => 'เบอร์โทรศัพท์', 'en' => 'Phone Number'],
+            'line_id' => ['th' => 'Line ID', 'en' => 'Line ID'],
+
+            'national_id' => ['th' => 'เลขบัตรประชาชน', 'en' => 'National ID Number'],
+            'national_id_back' => ['th' => 'เลขหลังบัตรประชาชน', 'en' => 'ID Back Number'],
+            'national_id_back_ph' => ['th' => 'เลขหลังบัตร', 'en' => 'Back number'],
+            'id_issue_date' => ['th' => 'วันออกบัตร', 'en' => 'Issue Date'],
+            'id_expiry_date' => ['th' => 'บัตรหมดอายุ', 'en' => 'Expiry Date'],
+            'current_address' => ['th' => 'ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก', 'en' => 'Current Address'],
+            'current_address_ph' => ['th' => 'บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์', 'en' => 'House No., Street, Subdistrict, District, Province, Postal Code'],
+
+            'living_status' => ['th' => 'สถานะความเป็นอยู่', 'en' => 'Living Status'],
+            'living_own' => ['th' => 'บ้านของตัวเอง', 'en' => 'Own home'],
+            'living_rent' => ['th' => 'บ้านเช่า', 'en' => 'Rented home'],
+            'living_parents' => ['th' => 'อยู่กับพ่อแม่', 'en' => 'With parents'],
+            'living_other' => ['th' => 'อยู่กับผู้อื่น', 'en' => 'With others'],
+            'marital_status' => ['th' => 'สถานะครอบครัว', 'en' => 'Marital Status'],
+            'marital_single' => ['th' => 'โสด', 'en' => 'Single'],
+            'marital_married' => ['th' => 'สมรส', 'en' => 'Married'],
+            'marital_divorced' => ['th' => 'หย่าร้าง', 'en' => 'Divorced'],
+            'marital_widowed' => ['th' => 'หม้าย', 'en' => 'Widowed'],
+            'marital_separated' => ['th' => 'แยกกันอยู่', 'en' => 'Separated'],
+            'marriage_registered' => ['th' => 'การจดทะเบียนสมรส', 'en' => 'Marriage Registration'],
+            'registered' => ['th' => 'จดทะเบียน', 'en' => 'Registered'],
+            'not_registered' => ['th' => 'ไม่จดทะเบียน', 'en' => 'Not registered'],
+            'spouse_name' => ['th' => 'ชื่อคู่สมรส', 'en' => "Spouse's Name"],
+            'spouse_name_ph' => ['th' => 'ชื่อ-นามสกุลคู่สมรส', 'en' => "Spouse's full name"],
+            'spouse_occupation' => ['th' => 'อาชีพคู่สมรส', 'en' => "Spouse's Occupation"],
+            'children_count' => ['th' => 'จำนวนบุตร', 'en' => 'Number of Children'],
+
+            'father_name' => ['th' => 'ชื่อบิดา', 'en' => "Father's Name"],
+            'father_name_ph' => ['th' => 'ชื่อ-นามสกุลบิดา', 'en' => "Father's full name"],
+            'father_age' => ['th' => 'อายุบิดา (ปี)', 'en' => "Father's Age"],
+            'father_occupation' => ['th' => 'อาชีพบิดา', 'en' => "Father's Occupation"],
+            'father_status' => ['th' => 'สถานะบิดา', 'en' => "Father's Status"],
+            'alive' => ['th' => 'มีชีวิตอยู่', 'en' => 'Alive'],
+            'deceased' => ['th' => 'เสียชีวิตแล้ว', 'en' => 'Deceased'],
+            'mother_name' => ['th' => 'ชื่อมารดา', 'en' => "Mother's Name"],
+            'mother_name_ph' => ['th' => 'ชื่อ-นามสกุลมารดา', 'en' => "Mother's full name"],
+            'mother_age' => ['th' => 'อายุมารดา (ปี)', 'en' => "Mother's Age"],
+            'mother_occupation' => ['th' => 'อาชีพมารดา', 'en' => "Mother's Occupation"],
+            'mother_status' => ['th' => 'สถานะมารดา', 'en' => "Mother's Status"],
+            'occupation_ph' => ['th' => 'อาชีพ', 'en' => 'Occupation'],
+            'siblings_count' => ['th' => 'จำนวนพี่น้อง (คน)', 'en' => 'No. of Brothers and Sisters'],
+            'birth_order' => ['th' => 'เป็นบุตรคนที่', 'en' => 'Yourselves at No.'],
+
+            'military_status' => ['th' => 'สถานะภาพทางการทหาร', 'en' => 'Military Status'],
+            'military_exempted' => ['th' => 'ได้รับการยกเว้น', 'en' => 'Exempted'],
+            'military_completed' => ['th' => 'ผ่านการเกณฑ์ทหารแล้ว', 'en' => 'Completed'],
+            'military_awaiting' => ['th' => 'รอเข้ารับการเกณฑ์ทหาร', 'en' => 'Awaiting conscription'],
+            'lese_majeste' => ['th' => 'มีประวัติหมิ่นพระบรมเดชานุภาพ', 'en' => 'Anti monarch record'],
+            'lese_majeste_detail' => ['th' => 'รายละเอียด', 'en' => 'Details'],
+
+            'back_home' => ['th' => 'กลับหน้าแรก', 'en' => 'Back to Home'],
+            'back_step' => ['th' => 'ย้อนกลับ', 'en' => 'Back'],
+            'save_continue' => ['th' => 'บันทึกและไปขั้นตอนถัดไป', 'en' => 'Save & Continue'],
+            'saving' => ['th' => 'กำลังบันทึก...', 'en' => 'Saving...'],
+
+            'education_subtitle' => ['th' => 'กรอกข้อมูลการศึกษาตามระดับที่ท่านสำเร็จ (เว้นว่างได้หากไม่มี)', 'en' => 'Fill in your education details by level completed (leave blank if not applicable)'],
+            'institution_name' => ['th' => 'ชื่อสถาบัน', 'en' => 'Name of Institute'],
+            'institution_name_ph' => ['th' => 'ชื่อสถาบัน', 'en' => 'Name of Institute'],
+            'province_country' => ['th' => 'จังหวัด/ประเทศ', 'en' => 'Country'],
+            'gpa' => ['th' => 'เกรดเฉลี่ย (GPA)', 'en' => 'GPA'],
+            'gpa_ph' => ['th' => 'เช่น 3.50', 'en' => 'e.g. 3.50'],
+            'start_year' => ['th' => 'เริ่มต้นปี (พ.ศ.)', 'en' => 'Start Year (B.E.)'],
+            'start_year_ph' => ['th' => 'เช่น 2538', 'en' => 'e.g. 2538'],
+            'end_year' => ['th' => 'ถึงปี (พ.ศ.)', 'en' => 'End Year (B.E.)'],
+            'end_year_ph' => ['th' => 'เช่น 2541', 'en' => 'e.g. 2541'],
+            'major' => ['th' => 'วิชาที่ศึกษา / วุฒิที่ได้รับ', 'en' => 'Course Taken-Completed'],
+            'major_ph' => ['th' => 'เช่น สายวิทย์-คณิต', 'en' => 'e.g. Science-Math'],
+
+            'language_subtitle' => ['th' => 'ประเมินระดับความสามารถทางภาษาตามความเป็นจริง โดยเรียงลำดับจากน้อย (0 = ไม่มีความสามารถเลย) ไปถึงมากที่สุด (5 = คล่องแคล่ว)', 'en' => 'Rate your language proficiency honestly, from lowest (0 = no ability) to highest (5 = fluent)'],
+            'other_language_name' => ['th' => 'ระบุชื่อภาษา', 'en' => 'Specify Language'],
+            'other_language_name_ph' => ['th' => 'เช่น ญี่ปุ่น, เกาหลี', 'en' => 'e.g. Japanese, Korean'],
+            'speaking' => ['th' => 'การพูด', 'en' => 'Speaking'],
+            'understanding' => ['th' => 'การเข้าใจ', 'en' => 'Understanding'],
+            'reading' => ['th' => 'การอ่าน', 'en' => 'Reading'],
+            'writing' => ['th' => 'การเขียน', 'en' => 'Writing'],
+            'language_cert_label' => ['th' => 'ใบรับรองด้านภาษา (ถ้ามี)', 'en' => 'Language Certificate (if any)'],
+            'language_cert_ph' => ['th' => 'เช่น TOEIC 750, HSK 4', 'en' => 'e.g. TOEIC 750, HSK 4'],
+
+            'work_subtitle' => ['th' => 'กรอกประวัติการทำงานย้อนหลัง เรียงจากล่าสุด (เว้นว่างได้หากไม่มี) สูงสุด 4 สถานประกอบการ', 'en' => 'Fill in your work history from most recent, up to 4 employers (leave blank if not applicable)'],
+            'work_note' => ['th' => '** หมายเหตุ ** ประสบการณ์ฝึกงานสามารถใส่ได้เช่นกัน', 'en' => '** Note ** Internship experience can also be included'],
+            'establishment' => ['th' => 'สถานประกอบที่', 'en' => 'Establishment'],
+            'company_name' => ['th' => 'ชื่อสถานประกอบการ', 'en' => 'Company Name'],
+            'work_position' => ['th' => 'ตำแหน่ง', 'en' => 'Position'],
+            'work_start_year' => ['th' => 'เริ่มต้นปี (พ.ศ.)', 'en' => 'Start Year (B.E.)'],
+            'work_start_year_ph' => ['th' => 'เช่น 2560', 'en' => 'e.g. 2560'],
+            'work_end_year' => ['th' => 'ถึงปี (พ.ศ.)', 'en' => 'End Year (B.E.)'],
+            'work_end_year_ph' => ['th' => 'เช่น 2563', 'en' => 'e.g. 2563'],
+            'work_duration' => ['th' => 'ระยะเวลาทั้งหมด', 'en' => 'Total Duration'],
+            'supervisor_name' => ['th' => 'ชื่อหัวหน้างาน', 'en' => 'Leader'],
+            'full_name_ph' => ['th' => 'ชื่อ-นามสกุล', 'en' => 'Full name'],
+            'supervisor_phone' => ['th' => 'เบอร์โทร', 'en' => 'Phone Number'],
+            'phone_ph' => ['th' => 'เบอร์โทร', 'en' => 'Phone number'],
+            'last_salary' => ['th' => 'เงินเดือนล่าสุด (บาท)', 'en' => 'Last Salary (THB)'],
+            'last_salary_ph' => ['th' => 'เช่น 50000', 'en' => 'e.g. 50000'],
+            'resignation_reason' => ['th' => 'สาเหตุที่ออก', 'en' => 'Reasons of resignation'],
+            'resignation_reason_ph' => ['th' => 'สาเหตุที่ออกจากงาน', 'en' => 'Reason for leaving the job'],
+            'other_language_attr' => ['th' => 'ชื่อภาษาอื่นๆ', 'en' => 'Other Language Name'],
+
+            'other_subtitle' => ['th' => 'ข้อมูลเพิ่มเติมสำหรับการพิจารณา', 'en' => 'Additional information for consideration'],
+            'ref_name' => ['th' => 'ชื่อ - นามสกุล', 'en' => 'Full Name'],
+            'ref_name_ph' => ['th' => 'ชื่อ - นามสกุล', 'en' => 'Full name'],
+            'ref_relationship' => ['th' => 'ความสัมพันธ์', 'en' => 'Relationship'],
+            'ref_relationship_ph' => ['th' => 'เช่น เพื่อน', 'en' => 'e.g. Friend'],
+            'ref_workplace' => ['th' => 'สถานที่ทำงาน-ที่อยู่', 'en' => 'Workplace / Address'],
+            'ref_workplace_ph' => ['th' => 'สถานที่ทำงาน / ที่อยู่', 'en' => 'Workplace / Address'],
+            'ref_position' => ['th' => 'ตำแหน่ง', 'en' => 'Position'],
+            'ref_phone' => ['th' => 'เบอร์โทร', 'en' => 'Phone Number'],
+            'ref_phone_ph' => ['th' => 'เบอร์โทร', 'en' => 'Phone number'],
+
+            'special_skills_label' => ['th' => 'ความรู้ความสามารถพิเศษ', 'en' => 'Special Skills / Abilities'],
+            'guarantor_label' => ['th' => 'สามารถหาผู้ค้ำประกันได้หรือไม่', 'en' => 'Can you provide a gruarantor?'],
+            'shift_label' => ['th' => 'สามารถทำงานเป็นกะหมุนเวียนได้หรือไม่', 'en' => 'Can you work shift by shift?'],
+            'yes_able' => ['th' => 'ได้', 'en' => 'Yes'],
+            'no_able' => ['th' => 'ไม่ได้', 'en' => 'No'],
+
+            'debt_amount' => ['th' => 'เงินที่ชำระหนี้นอกระบบ (บาท/เดือน)', 'en' => 'Informal debt amounting to (Baht per month)'],
+            'debt_interest' => ['th' => 'ดอกเบี้ย (ร้อยละ/เดือน)', 'en' => 'Interest Rate (Baht per month)'],
+            'credit_debt' => ['th' => 'วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)', 'en' => 'You have a credit card/cash card (amount)'],
+            'outstanding_balance' => ['th' => 'ยอดค้างชำระ (บาท)', 'en' => 'You have an outstanding balance totaling (Baht)'],
+
+            'illness_label' => ['th' => 'ในช่วง 3 ปีที่ผ่านมา เคยเจ็บป่วยเข้าโรงพยาบาลหรือประสบอุบัติเหตุหรือไม่ (ถ้ามีระบุรายละเอียด)', 'en' => 'In the past 3 years, have you been hospitalized or had an accident? (please specify if any)'],
+            'illness_ph' => ['th' => 'รายละเอียด (ถ้ามี)', 'en' => 'Details (if any)'],
+
+            'known_person' => ['th' => 'บุคคลในบริษัทที่รู้จัก/แนะนำ', 'en' => 'Referrer in Company'],
+            'start_date_label' => ['th' => 'วันที่พร้อมเริ่มงาน', 'en' => 'Available Start Date'],
+            'source_channels_label' => ['th' => 'ช่องทางที่ทราบข่าวการรับสมัคร', 'en' => 'How did you hear about this job opening?'],
+            'source_other_label' => ['th' => 'ระบุช่องทางอื่นๆ', 'en' => 'Specify Other Channel'],
+            'source_other_ph' => ['th' => 'ระบุ', 'en' => 'Specify'],
+            'referred_friend_label' => ['th' => 'ชื่อเพื่อน/ญาติที่แนะนำ', 'en' => "Referrer's Name (Friend/Relative)"],
+            'source_friend_referral' => ['th' => 'เพื่อน/ญาติแนะนำ', 'en' => 'Friend/Relative Referral'],
+            'source_other' => ['th' => 'อื่นๆ', 'en' => 'Other'],
+
+            'schedule_subtitle' => ['th' => 'กรุณาอ่านรายละเอียดเวลาปฏิบัติงานและยินยอมข้อตกลงก่อนส่งใบสมัคร', 'en' => 'Please read the work schedule details and agree to the terms before submitting your application'],
+            'non_production_title' => ['th' => 'กลุ่มพนักงานที่ไม่เกี่ยวข้องกับการผลิต', 'en' => 'Employee group that is not related to the production'],
+            'non_production_bullet1' => ['th' => 'ในสัปดาห์ที่ 1, 3 ปฏิบัติงานวันจันทร์ ถึง วันศุกร์ และวันเสาร์ทำงานในรูปแบบ Work From Anywhere เวลาปฏิบัติงานครึ่งวันเช้า', 'en' => 'In weeks 1 and 3, work Monday to Friday, and Saturday is Work From Anywhere for a half-day morning shift'],
+            'non_production_bullet2' => ['th' => 'ในสัปดาห์ที่ 2, 4 ปฏิบัติงานวันจันทร์ ถึง วันศุกร์ วันเสาร์เป็นวันหยุดประจำสัปดาห์', 'en' => 'In weeks 2 and 4, work Monday to Friday, with Saturday as the weekly day off'],
+            'non_production_bullet3' => ['th' => 'ในสัปดาห์ที่ 5 ปฏิบัติงานวันเสาร์ (ทำกิจกรรม CSR) เวลาปฏิบัติงานตามข้อบังคับการทำงานของแต่ละบริษัท', 'en' => 'In week 5, work on Saturday (CSR activity), following each company\'s working regulations'],
+            'production_title' => ['th' => 'กลุ่มพนักงานที่เกี่ยวข้องกับการผลิต', 'en' => 'Employee group that is related to the production'],
+            'production_bullet1' => ['th' => 'ปฏิบัติงานวันจันทร์ ถึง วันเสาร์ เวลาปฏิบัติงานตามข้อบังคับการทำงานของแต่ละบริษัท (เลือกหยุดวันเสาร์ได้ 2 วันต่อเดือน)', 'en' => 'Work Monday to Saturday, following each company\'s working regulations (may choose 2 Saturdays off per month)'],
+            'data_accuracy_consent' => ['th' => 'ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริงทุกประการ หากข้อความตอนหนึ่งตอนใดไม่ตรงกับความเป็นจริง ข้าพเจ้าขอยอมรับว่าการว่าจ้างที่ตกลงนั้นเป็นอันโมฆะทันที และยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และการเป็นพนักงานของบริษัทได้', 'en' => 'I certify that my answers are true and complete to the best of my knowledge. If this application leads to employment, I understand that false or misleading information in my application or interview may result in my release. I consent to the disclosure and verification of personal information at all times necessary for applying for a job and being an employee of the company.'],
+            'privacy_policy_consent' => ['th' => 'ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล สำหรับบุคลากรของบริษัท ข้าพเจ้ารับทราบและยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และตลอดระยะเวลาการเป็นพนักงานของบริษัท', 'en' => 'I have read the personal data protection policy for company personnel. I acknowledge and consent to the disclosure and verification of personal information at all times necessary for applying for a job and throughout the period of being an employee of the company.'],
+            'signature_label' => ['th' => 'ลงชื่อผู้สมัครงาน (พิมพ์ชื่อ-นามสกุล)', 'en' => 'Applicant Signature (Type full name)'],
+            'continue_to_review' => ['th' => 'ไปที่หน้าตรวจสอบข้อมูล', 'en' => 'Go to Review Page'],
+            'data_accuracy_consent_attr' => ['th' => 'การรับรองความถูกต้องของข้อมูล', 'en' => 'Data accuracy certification'],
+            'privacy_policy_consent_attr' => ['th' => 'การยินยอมตามนโยบายคุ้มครองข้อมูลส่วนบุคคล', 'en' => 'Privacy policy consent'],
+            'signature_name_attr' => ['th' => 'ลงชื่อผู้สมัครงาน', 'en' => 'Applicant Signature'],
+        ];
+    }
+
+    public function tr(string $key): string
+    {
+        return $this->tDict()[$key][$this->locale] ?? $key;
+    }
+
     public function workDuration(int $orderNo): ?string
     {
         $row = $this->workHistories[$orderNo] ?? null;
@@ -188,6 +398,10 @@ new #[Layout('layouts.application')] class extends Component
 
         if ($years < 0) {
             return null;
+        }
+
+        if ($this->locale === 'en') {
+            return $years === 0 ? 'Less than 1 year' : "{$years} year".($years > 1 ? 's' : '');
         }
 
         return $years === 0 ? 'น้อยกว่า 1 ปี' : "{$years} ปี";
@@ -207,8 +421,10 @@ new #[Layout('layouts.application')] class extends Component
         ];
     }
 
-    public function sourceChannelOptions(): array
+    public function sourceChannelOptions(?string $locale = null): array
     {
+        $locale ??= $this->locale;
+
         return [
             'JOBTOPGUN' => 'JOBTOPGUN',
             'JOBTHAI' => 'JOBTHAI',
@@ -220,8 +436,8 @@ new #[Layout('layouts.application')] class extends Component
             'HR Freelance' => 'HR Freelance',
             'Indeed' => 'Indeed',
             'Headhunter' => 'Headhunter',
-            'เพื่อน/ญาติแนะนำ' => 'เพื่อน/ญาติแนะนำ',
-            'อื่นๆ' => 'อื่นๆ',
+            'เพื่อน/ญาติแนะนำ' => $this->tr('source_friend_referral'),
+            'อื่นๆ' => $this->tr('source_other'),
         ];
     }
 
@@ -336,6 +552,24 @@ new #[Layout('layouts.application')] class extends Component
 
     protected function messages(): array
     {
+        if ($this->locale === 'en') {
+            return [
+                'required' => ':attribute is required',
+                'required_if' => ':attribute is required',
+                'email' => ':attribute is invalid',
+                'date' => ':attribute is invalid',
+                'before' => ':attribute must be a date before today',
+                'numeric' => ':attribute must be a number',
+                'integer' => ':attribute must be a whole number',
+                'in' => ':attribute is invalid',
+                'boolean' => ':attribute is invalid',
+                'max' => ':attribute is too long',
+                'min' => ':attribute is invalid',
+                'exists' => ':attribute is invalid',
+                'string' => ':attribute is invalid',
+            ];
+        }
+
         return [
             'required' => ':attribute จำเป็นต้องกรอก',
             'required_if' => ':attribute จำเป็นต้องกรอก',
@@ -356,8 +590,8 @@ new #[Layout('layouts.application')] class extends Component
     protected function validationAttributes(): array
     {
         return [
-            'position_id' => 'ตำแหน่งที่ต้องการ',
-            'expected_salary' => 'เงินเดือนที่ต้องการ',
+            'position_id' => $this->tr('position_label'),
+            'expected_salary' => $this->tr('expected_salary'),
             'title_th' => 'คำนำหน้า (TH)',
             'first_name_th' => 'ชื่อ (TH)',
             'last_name_th' => 'นามสกุล (TH)',
@@ -366,30 +600,30 @@ new #[Layout('layouts.application')] class extends Component
             'first_name_en' => 'Name (ENG)',
             'last_name_en' => 'Surname (ENG)',
             'nickname_en' => 'Nickname (ENG)',
-            'date_of_birth' => 'วันเดือนปีเกิด',
-            'nationality' => 'สัญชาติ',
-            'ethnicity' => 'เชื้อชาติ',
-            'religion' => 'ศาสนา',
-            'gender' => 'เพศ',
-            'height_cm' => 'ส่วนสูง',
-            'weight_kg' => 'น้ำหนัก',
-            'country' => 'ประเทศ',
-            'hometown' => 'ภูมิลำเนา',
-            'has_congenital_disease' => 'มีโรคประจำตัว',
-            'congenital_disease_detail' => 'รายละเอียดโรคประจำตัว',
-            'has_criminal_record' => 'มีประวัติอาชญากรรม',
-            'criminal_record_detail' => 'รายละเอียดประวัติอาชญากรรม',
-            'email' => 'Email',
-            'phone' => 'เบอร์โทรศัพท์',
-            'national_id_number' => 'เลขบัตรประชาชน',
-            'current_address' => 'ที่อยู่ปัจจุบัน',
-            'living_status' => 'สถานะความเป็นอยู่',
-            'marital_status' => 'สถานะครอบครัว',
-            'marriage_registered' => 'การจดทะเบียนสมรส',
-            'spouse_name' => 'ชื่อคู่สมรส',
-            'military_status' => 'สถานะภาพทางการทหาร',
-            'has_lese_majeste_record' => 'ประวัติหมิ่นพระบรมเดชานุภาพ',
-            'lese_majeste_detail' => 'รายละเอียด',
+            'date_of_birth' => $this->tr('date_of_birth'),
+            'nationality' => $this->tr('nationality'),
+            'ethnicity' => $this->tr('ethnicity'),
+            'religion' => $this->tr('religion'),
+            'gender' => $this->tr('gender'),
+            'height_cm' => $this->tr('height'),
+            'weight_kg' => $this->tr('weight'),
+            'country' => $this->tr('country'),
+            'hometown' => $this->tr('hometown'),
+            'has_congenital_disease' => $this->tr('has_congenital_disease'),
+            'congenital_disease_detail' => $this->tr('congenital_detail'),
+            'has_criminal_record' => $this->tr('has_criminal_record'),
+            'criminal_record_detail' => $this->tr('criminal_detail'),
+            'email' => $this->tr('email'),
+            'phone' => $this->tr('phone'),
+            'national_id_number' => $this->tr('national_id'),
+            'current_address' => $this->tr('current_address'),
+            'living_status' => $this->tr('living_status'),
+            'marital_status' => $this->tr('marital_status'),
+            'marriage_registered' => $this->tr('marriage_registered'),
+            'spouse_name' => $this->tr('spouse_name'),
+            'military_status' => $this->tr('military_status'),
+            'has_lese_majeste_record' => $this->tr('lese_majeste'),
+            'lese_majeste_detail' => $this->tr('lese_majeste_detail'),
         ];
     }
 
@@ -470,24 +704,33 @@ new #[Layout('layouts.application')] class extends Component
         }
 
         $skillLabels = [
-            'speaking_level' => 'การพูด',
-            'understanding_level' => 'การเข้าใจ',
-            'reading_level' => 'การอ่าน',
-            'writing_level' => 'การเขียน',
+            'speaking_level' => $this->tr('speaking'),
+            'understanding_level' => $this->tr('understanding'),
+            'reading_level' => $this->tr('reading'),
+            'writing_level' => $this->tr('writing'),
         ];
-        $attributes = ['languages.other.custom_language_name' => 'ชื่อภาษาอื่นๆ'];
+        $attributes = ['languages.other.custom_language_name' => $this->tr('other_language_attr')];
         foreach ($this->languageKeys() as $lang => $labels) {
             foreach ($skillLabels as $skill => $skillLabel) {
-                $attributes["languages.{$lang}.{$skill}"] = "{$labels['th']} - {$skillLabel}";
+                $attributes["languages.{$lang}.{$skill}"] = "{$labels[$this->locale]} - {$skillLabel}";
             }
         }
 
-        $data = $this->validate($rules, [
-            'required' => ':attribute จำเป็นต้องกรอก',
-            'required_with' => ':attribute จำเป็นต้องกรอกเมื่อระบุชื่อภาษา',
-            'integer' => ':attribute ต้องเป็นตัวเลข',
-            'between' => ':attribute ต้องอยู่ระหว่าง 0 ถึง 5',
-        ], $attributes);
+        $messages = $this->locale === 'en'
+            ? [
+                'required' => ':attribute is required',
+                'required_with' => ':attribute is required when a language name is specified',
+                'integer' => ':attribute must be a number',
+                'between' => ':attribute must be between 0 and 5',
+            ]
+            : [
+                'required' => ':attribute จำเป็นต้องกรอก',
+                'required_with' => ':attribute จำเป็นต้องกรอกเมื่อระบุชื่อภาษา',
+                'integer' => ':attribute ต้องเป็นตัวเลข',
+                'between' => ':attribute ต้องอยู่ระหว่าง 0 ถึง 5',
+            ];
+
+        $data = $this->validate($rules, $messages, $attributes);
 
         // ลบข้อมูลภาษาเดิมของผู้สมัครคนนี้ก่อน แล้วค่อยบันทึกใหม่ทั้งหมด
         ApplicantLanguage::where('applicant_id', $this->applicantId)->delete();
@@ -529,16 +772,29 @@ new #[Layout('layouts.application')] class extends Component
             $rules["workHistories.{$i}.last_salary"] = ['nullable', 'numeric', 'min:0'];
             $rules["workHistories.{$i}.resignation_reason"] = ['nullable', 'string', 'max:1000'];
 
-            $attributes["workHistories.{$i}.company_name"] = "ชื่อสถานประกอบการที่ {$i}";
-            $attributes["workHistories.{$i}.position"] = "ตำแหน่งที่ {$i}";
+            $attributes["workHistories.{$i}.company_name"] = $this->locale === 'en'
+                ? "{$this->tr('company_name')} {$i}"
+                : "{$this->tr('company_name')}ที่ {$i}";
+            $attributes["workHistories.{$i}.position"] = $this->locale === 'en'
+                ? "{$this->tr('work_position')} {$i}"
+                : "{$this->tr('work_position')}ที่ {$i}";
         }
 
-        $data = $this->validate($rules, [
-            'required_with' => ':attribute จำเป็นต้องกรอก',
-            'integer' => ':attribute ต้องเป็นตัวเลข',
-            'digits' => ':attribute ต้องมี 4 หลัก',
-            'numeric' => ':attribute ต้องเป็นตัวเลข',
-        ], $attributes);
+        $messages = $this->locale === 'en'
+            ? [
+                'required_with' => ':attribute is required',
+                'integer' => ':attribute must be a number',
+                'digits' => ':attribute must have 4 digits',
+                'numeric' => ':attribute must be a number',
+            ]
+            : [
+                'required_with' => ':attribute จำเป็นต้องกรอก',
+                'integer' => ':attribute ต้องเป็นตัวเลข',
+                'digits' => ':attribute ต้องมี 4 หลัก',
+                'numeric' => ':attribute ต้องเป็นตัวเลข',
+            ];
+
+        $data = $this->validate($rules, $messages, $attributes);
 
         // ลบข้อมูลประวัติการทำงานเดิมของผู้สมัครคนนี้ก่อน แล้วค่อยบันทึกใหม่ทั้งหมด
         ApplicantWorkHistory::where('applicant_id', $this->applicantId)->delete();
@@ -595,31 +851,51 @@ new #[Layout('layouts.application')] class extends Component
             'referred_friend_name' => ['nullable', 'string', 'max:255'],
         ];
 
-        $attributes = [
-            'references.1.name' => 'ชื่อ-นามสกุล บุคคลที่ 1',
-            'references.1.relationship' => 'ความสัมพันธ์ บุคคลที่ 1',
-            'references.1.workplace_address' => 'สถานที่ทำงาน-ที่อยู่ บุคคลที่ 1',
-            'references.1.phone' => 'เบอร์โทร บุคคลที่ 1',
-            'references.2.relationship' => 'ความสัมพันธ์ บุคคลที่ 2',
-            'references.2.phone' => 'เบอร์โทร บุคคลที่ 2',
-        ];
+        $attributes = $this->locale === 'en'
+            ? [
+                'references.1.name' => 'Full Name (Person 1)',
+                'references.1.relationship' => 'Relationship (Person 1)',
+                'references.1.workplace_address' => 'Workplace / Address (Person 1)',
+                'references.1.phone' => 'Phone Number (Person 1)',
+                'references.2.relationship' => 'Relationship (Person 2)',
+                'references.2.phone' => 'Phone Number (Person 2)',
+            ]
+            : [
+                'references.1.name' => 'ชื่อ-นามสกุล บุคคลที่ 1',
+                'references.1.relationship' => 'ความสัมพันธ์ บุคคลที่ 1',
+                'references.1.workplace_address' => 'สถานที่ทำงาน-ที่อยู่ บุคคลที่ 1',
+                'references.1.phone' => 'เบอร์โทร บุคคลที่ 1',
+                'references.2.relationship' => 'ความสัมพันธ์ บุคคลที่ 2',
+                'references.2.phone' => 'เบอร์โทร บุคคลที่ 2',
+            ];
 
         foreach ($this->documentTypes() as $type => $meta) {
             $rules["documents.{$type}"] = [
                 $meta['required'] ? 'required' : 'nullable',
                 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120',
             ];
-            $attributes["documents.{$type}"] = $meta['th'];
+            $attributes["documents.{$type}"] = $meta[$this->locale];
         }
 
-        $data = $this->validate($rules, [
-            'required' => ':attribute จำเป็นต้องกรอก',
-            'required_with' => ':attribute จำเป็นต้องกรอก',
-            'numeric' => ':attribute ต้องเป็นตัวเลข',
-            'date' => ':attribute ไม่ถูกต้อง',
-            'mimes' => ':attribute ต้องเป็นไฟล์ JPG, PNG หรือ PDF เท่านั้น',
-            'max' => ':attribute มีขนาดใหญ่เกินไป (สูงสุด 5MB)',
-        ], $attributes);
+        $messages = $this->locale === 'en'
+            ? [
+                'required' => ':attribute is required',
+                'required_with' => ':attribute is required',
+                'numeric' => ':attribute must be a number',
+                'date' => ':attribute is invalid',
+                'mimes' => ':attribute must be a JPG, PNG, or PDF file only',
+                'max' => ':attribute is too large (max 5MB)',
+            ]
+            : [
+                'required' => ':attribute จำเป็นต้องกรอก',
+                'required_with' => ':attribute จำเป็นต้องกรอก',
+                'numeric' => ':attribute ต้องเป็นตัวเลข',
+                'date' => ':attribute ไม่ถูกต้อง',
+                'mimes' => ':attribute ต้องเป็นไฟล์ JPG, PNG หรือ PDF เท่านั้น',
+                'max' => ':attribute มีขนาดใหญ่เกินไป (สูงสุด 5MB)',
+            ];
+
+        $data = $this->validate($rules, $messages, $attributes);
 
         // แปลง empty string ของฟิลด์ระดับบนสุดให้เป็น NULL (ไม่กระทบ references/documents ที่เป็น array)
         $data = collect($data)->map(fn ($value) => $value === '' ? null : $value)->all();
@@ -677,17 +953,24 @@ new #[Layout('layouts.application')] class extends Component
 
     public function submitSchedule(): void
     {
+        $messages = $this->locale === 'en'
+            ? [
+                'accepted' => ':attribute must be accepted before the application can be submitted',
+                'required' => ':attribute is required',
+            ]
+            : [
+                'accepted' => ':attribute ต้องกดยอมรับก่อนจึงจะส่งใบสมัครได้',
+                'required' => ':attribute จำเป็นต้องกรอก',
+            ];
+
         $data = $this->validate([
             'data_accuracy_consent' => ['accepted'],
             'privacy_policy_consent' => ['accepted'],
             'signature_name' => ['required', 'string', 'max:255'],
-        ], [
-            'accepted' => ':attribute ต้องกดยอมรับก่อนจึงจะส่งใบสมัครได้',
-            'required' => ':attribute จำเป็นต้องกรอก',
-        ], [
-            'data_accuracy_consent' => 'การรับรองความถูกต้องของข้อมูล',
-            'privacy_policy_consent' => 'การยินยอมตามนโยบายคุ้มครองข้อมูลส่วนบุคคล',
-            'signature_name' => 'ลงชื่อผู้สมัครงาน',
+        ], $messages, [
+            'data_accuracy_consent' => $this->tr('data_accuracy_consent_attr'),
+            'privacy_policy_consent' => $this->tr('privacy_policy_consent_attr'),
+            'signature_name' => $this->tr('signature_name_attr'),
         ]);
 
         Applicant::whereKey($this->applicantId)->update([
@@ -769,8 +1052,8 @@ new #[Layout('layouts.application')] class extends Component
             @php
                 $stepKeys = ['personal', 'education', 'language', 'work', 'other', 'schedule', 'review'];
                 $stepLabels = [
-                    'ประวัติส่วนตัว', 'ประวัติการศึกษา', 'ความสามารถด้านภาษา',
-                    'ประวัติการทำงาน', 'ข้อมูลอื่นๆ & เอกสาร', 'วัน-เวลาทำงาน', 'ตรวจสอบข้อมูล',
+                    $this->tr('step_personal'), $this->tr('step_education'), $this->tr('step_language'),
+                    $this->tr('step_work'), $this->tr('step_other'), $this->tr('step_schedule'), $this->tr('step_review'),
                 ];
                 $currentStepIndex = array_search($step, $stepKeys);
             @endphp
@@ -793,163 +1076,163 @@ new #[Layout('layouts.application')] class extends Component
 
         @if ($step === 'personal')
             <form wire:submit="submitPersonal" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ประวัติส่วนตัว <span class="font-normal text-stone-400">/ Personal Background</span></h1>
-                <p class="mt-1 text-sm text-stone-500">กรอกข้อมูลให้ครบถ้วนและตรงตามความเป็นจริง</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_personal') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('personal_subtitle') }}</p>
 
                 {{-- ตำแหน่งงานที่สมัคร --}}
-                <x-form.section-title thai="ตำแหน่งงานที่สมัคร" english="Position" />
+                <x-form.section-title thai="ตำแหน่งงานที่สมัคร" english="Position" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-form.select label="ตำแหน่งที่ต้องการ" model="position_id" required placeholder="--เลือกตำแหน่งที่สนใจ--"
+                    <x-form.select :label="$this->tr('position_label')" model="position_id" required :placeholder="$this->tr('position_placeholder')"
                         :options="$this->positions->pluck('title', 'id')->all()" />
-                    <x-form.input label="เงินเดือนที่ต้องการ (บาท)" model="expected_salary" type="number" step="0.01" required placeholder="0" />
+                    <x-form.input :label="$this->tr('expected_salary')" model="expected_salary" type="number" step="0.01" required placeholder="0" />
                 </div>
 
                 {{-- ข้อมูลส่วนตัว --}}
-                <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" />
+                <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.select label="คำนำหน้า (TH)" model="title_th" required
+                    <x-form.select label="คำนำหน้า (TH)" model="title_th" required :locale="$locale"
                         :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว']" />
                     <x-form.input label="ชื่อ (TH)" model="first_name_th" required placeholder="ชื่อ" />
                     <x-form.input label="นามสกุล (TH)" model="last_name_th" required placeholder="นามสกุล" />
                     <x-form.input label="ชื่อเล่น (TH)" model="nickname_th" required placeholder="ชื่อเล่น" />
 
-                    <x-form.select label="Title (ENG)" model="title_en" required
+                    <x-form.select label="Title (ENG)" model="title_en" required :locale="$locale"
                         :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.']" />
                     <x-form.input label="Name (ENG)" model="first_name_en" required placeholder="Name" />
                     <x-form.input label="Surname (ENG)" model="last_name_en" required placeholder="Surname" />
                     <x-form.input label="Nickname (ENG)" model="nickname_en" required placeholder="Nickname" />
 
-                    <x-form.input label="วันเดือนปีเกิด" model="date_of_birth" type="date" required live />
-                    <x-form.input label="อายุ" model="age" value="{{ $this->age }}" disabled placeholder="-" />
-                    <x-form.input label="สัญชาติ" model="nationality" required placeholder="เช่น ไทย" />
-                    <x-form.input label="เชื้อชาติ" model="ethnicity" required placeholder="เช่น ไทย" />
+                    <x-form.input :label="$this->tr('date_of_birth')" model="date_of_birth" type="date" required live />
+                    <x-form.input :label="$this->tr('age')" model="age" value="{{ $this->age }}" disabled placeholder="-" />
+                    <x-form.input :label="$this->tr('nationality')" model="nationality" required :placeholder="$this->tr('nationality_ph')" />
+                    <x-form.input :label="$this->tr('ethnicity')" model="ethnicity" required :placeholder="$this->tr('ethnicity_ph')" />
 
-                    <x-form.input label="ศาสนา" model="religion" required placeholder="เช่น พุทธ" />
-                    <x-form.select label="เพศ" model="gender" required
-                        :options="['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'อื่นๆ']" />
-                    <x-form.input label="ส่วนสูง (ซม.)" model="height_cm" type="number" step="0.1" required placeholder="ส่วนสูง" />
-                    <x-form.input label="น้ำหนัก (กก.)" model="weight_kg" type="number" step="0.1" required placeholder="น้ำหนัก" />
+                    <x-form.input :label="$this->tr('religion')" model="religion" required :placeholder="$this->tr('religion_ph')" />
+                    <x-form.select :label="$this->tr('gender')" model="gender" required :placeholder="$this->tr('select_placeholder')"
+                        :options="['male' => $this->tr('gender_male'), 'female' => $this->tr('gender_female'), 'other' => $this->tr('gender_other')]" />
+                    <x-form.input :label="$this->tr('height')" model="height_cm" type="number" step="0.1" required :placeholder="$this->tr('height_ph')" />
+                    <x-form.input :label="$this->tr('weight')" model="weight_kg" type="number" step="0.1" required :placeholder="$this->tr('weight_ph')" />
 
-                    <x-form.radio-group label="มีโรคประจำตัว" model="has_congenital_disease" required live
-                        :options="['1' => 'มี', '0' => 'ไม่มี']" />
+                    <x-form.radio-group :label="$this->tr('has_congenital_disease')" model="has_congenital_disease" required live
+                        :options="['1' => $this->tr('yes'), '0' => $this->tr('no')]" />
                     @if ($has_congenital_disease === '1')
-                        <x-form.input label="รายละเอียดโรคประจำตัว" model="congenital_disease_detail" required wrapper-class="sm:col-span-2" />
+                        <x-form.input :label="$this->tr('congenital_detail')" model="congenital_disease_detail" required wrapper-class="sm:col-span-2" />
                     @endif
 
-                    <x-form.radio-group label="มีประวัติอาชญากรรม" model="has_criminal_record" required live
-                        :options="['1' => 'เคยมี', '0' => 'ไม่มี']" />
+                    <x-form.radio-group :label="$this->tr('has_criminal_record')" model="has_criminal_record" required live
+                        :options="['1' => $this->tr('criminal_yes'), '0' => $this->tr('no')]" />
                     @if ($has_criminal_record === '1')
-                        <x-form.input label="รายละเอียดประวัติอาชญากรรม" model="criminal_record_detail" required wrapper-class="sm:col-span-2" />
+                        <x-form.input :label="$this->tr('criminal_detail')" model="criminal_record_detail" required wrapper-class="sm:col-span-2" />
                     @endif
 
-                    <x-form.input label="ประเทศ" model="country" required placeholder="เช่น ไทย" />
-                    <x-form.input label="ภูมิลำเนา" model="hometown" required placeholder="จังหวัด" wrapper-class="sm:col-span-2 lg:col-span-4" />
+                    <x-form.input :label="$this->tr('country')" model="country" required :placeholder="$this->tr('country_ph')" />
+                    <x-form.input :label="$this->tr('hometown')" model="hometown" required :placeholder="$this->tr('hometown_ph')" wrapper-class="sm:col-span-2 lg:col-span-4" />
                 </div>
 
                 {{-- ติดต่อ --}}
-                <x-form.section-title thai="ช่องทางติดต่อ" english="Contact" />
+                <x-form.section-title thai="ช่องทางติดต่อ" english="Contact" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    <x-form.input label="Email" model="email" type="email" required placeholder="you@example.com" />
-                    <x-form.input label="เบอร์โทรศัพท์" model="phone" required placeholder="08x-xxx-xxxx" />
-                    <x-form.input label="Line ID" model="line_id" placeholder="Line ID" />
+                    <x-form.input :label="$this->tr('email')" model="email" type="email" required placeholder="you@example.com" />
+                    <x-form.input :label="$this->tr('phone')" model="phone" required placeholder="08x-xxx-xxxx" />
+                    <x-form.input :label="$this->tr('line_id')" model="line_id" placeholder="Line ID" />
                     <x-form.input label="Facebook" model="facebook" placeholder="Facebook" />
                     <x-form.input label="Instagram" model="instagram" placeholder="Instagram" />
                     <x-form.input label="Twitter" model="twitter" placeholder="Twitter" />
                 </div>
 
                 {{-- บัตรประชาชน & ที่อยู่ --}}
-                <x-form.section-title thai="บัตรประชาชน & ที่อยู่" english="ID card & Address" />
+                <x-form.section-title thai="บัตรประชาชน & ที่อยู่" english="ID card & Address" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.input label="เลขบัตรประชาชน" model="national_id_number" required placeholder="x-xxxx-xxxxx-xx-x" />
-                    <x-form.input label="เลขหลังบัตรประชาชน" model="national_id_back_number" placeholder="เลขหลังบัตร" />
-                    <x-form.input label="วันออกบัตร" model="id_issue_date" type="date" />
-                    <x-form.input label="บัตรหมดอายุ" model="id_expiry_date" type="date" />
+                    <x-form.input :label="$this->tr('national_id')" model="national_id_number" required placeholder="x-xxxx-xxxxx-xx-x" />
+                    <x-form.input :label="$this->tr('national_id_back')" model="national_id_back_number" :placeholder="$this->tr('national_id_back_ph')" />
+                    <x-form.input :label="$this->tr('id_issue_date')" model="id_issue_date" type="date" />
+                    <x-form.input :label="$this->tr('id_expiry_date')" model="id_expiry_date" type="date" />
                 </div>
                 <div class="mt-5">
-                    <x-form.textarea label="ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก" model="current_address" required placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" />
+                    <x-form.textarea :label="$this->tr('current_address')" model="current_address" required :placeholder="$this->tr('current_address_ph')" />
                 </div>
 
                 {{-- สถานะความเป็นอยู่ & ครอบครัว --}}
-                <x-form.section-title thai="สถานะความเป็นอยู่ & ครอบครัว" english="Living Status & Family" />
+                <x-form.section-title thai="สถานะความเป็นอยู่ & ครอบครัว" english="Living Status & Family" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-form.radio-group label="สถานะความเป็นอยู่" model="living_status" required
-                        :options="['own_home' => 'บ้านของตัวเอง', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อยู่กับพ่อแม่', 'with_other' => 'อยู่กับผู้อื่น']" />
-                    <x-form.radio-group label="สถานะครอบครัว" model="marital_status" required live
-                        :options="['single' => 'โสด', 'married' => 'สมรส', 'divorced' => 'หย่าร้าง', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่']" />
+                    <x-form.radio-group :label="$this->tr('living_status')" model="living_status" required
+                        :options="['own_home' => $this->tr('living_own'), 'rent_home' => $this->tr('living_rent'), 'with_parents' => $this->tr('living_parents'), 'with_other' => $this->tr('living_other')]" />
+                    <x-form.radio-group :label="$this->tr('marital_status')" model="marital_status" required live
+                        :options="['single' => $this->tr('marital_single'), 'married' => $this->tr('marital_married'), 'divorced' => $this->tr('marital_divorced'), 'widowed' => $this->tr('marital_widowed'), 'separated' => $this->tr('marital_separated')]" />
                 </div>
 
                 @if ($marital_status === 'married')
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <x-form.radio-group label="การจดทะเบียนสมรส" model="marriage_registered" required
-                            :options="['1' => 'จดทะเบียน', '0' => 'ไม่จดทะเบียน']" />
-                        <x-form.input label="ชื่อคู่สมรส" model="spouse_name" required placeholder="ชื่อ-นามสกุลคู่สมรส" />
-                        <x-form.input label="อาชีพคู่สมรส" model="spouse_occupation" placeholder="อาชีพ" />
-                        <x-form.input label="จำนวนบุตร" model="children_count" type="number" placeholder="0" />
+                        <x-form.radio-group :label="$this->tr('marriage_registered')" model="marriage_registered" required
+                            :options="['1' => $this->tr('registered'), '0' => $this->tr('not_registered')]" />
+                        <x-form.input :label="$this->tr('spouse_name')" model="spouse_name" required :placeholder="$this->tr('spouse_name_ph')" />
+                        <x-form.input :label="$this->tr('spouse_occupation')" model="spouse_occupation" :placeholder="$this->tr('occupation_ph')" />
+                        <x-form.input :label="$this->tr('children_count')" model="children_count" type="number" placeholder="0" />
                     </div>
                 @endif
 
                 {{-- บิดามารดาและพี่น้อง --}}
-                <x-form.section-title thai="ข้อมูลบิดามารดาและพี่น้อง" english="Parent & Sibling Information" />
+                <x-form.section-title thai="ข้อมูลบิดามารดาและพี่น้อง" english="Parent & Sibling Information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.input label="ชื่อบิดา" model="father_name" placeholder="ชื่อ-นามสกุลบิดา" />
-                    <x-form.input label="อายุบิดา (ปี)" model="father_age" type="number" placeholder="0" />
-                    <x-form.input label="อาชีพบิดา" model="father_occupation" placeholder="อาชีพ" />
-                    <x-form.radio-group label="สถานะบิดา" model="father_alive"
-                        :options="['1' => 'มีชีวิตอยู่', '0' => 'เสียชีวิตแล้ว']" />
+                    <x-form.input :label="$this->tr('father_name')" model="father_name" :placeholder="$this->tr('father_name_ph')" />
+                    <x-form.input :label="$this->tr('father_age')" model="father_age" type="number" placeholder="0" />
+                    <x-form.input :label="$this->tr('father_occupation')" model="father_occupation" :placeholder="$this->tr('occupation_ph')" />
+                    <x-form.radio-group :label="$this->tr('father_status')" model="father_alive"
+                        :options="['1' => $this->tr('alive'), '0' => $this->tr('deceased')]" />
 
-                    <x-form.input label="ชื่อมารดา" model="mother_name" placeholder="ชื่อ-นามสกุลมารดา" />
-                    <x-form.input label="อายุมารดา (ปี)" model="mother_age" type="number" placeholder="0" />
-                    <x-form.input label="อาชีพมารดา" model="mother_occupation" placeholder="อาชีพ" />
-                    <x-form.radio-group label="สถานะมารดา" model="mother_alive"
-                        :options="['1' => 'มีชีวิตอยู่', '0' => 'เสียชีวิตแล้ว']" />
+                    <x-form.input :label="$this->tr('mother_name')" model="mother_name" :placeholder="$this->tr('mother_name_ph')" />
+                    <x-form.input :label="$this->tr('mother_age')" model="mother_age" type="number" placeholder="0" />
+                    <x-form.input :label="$this->tr('mother_occupation')" model="mother_occupation" :placeholder="$this->tr('occupation_ph')" />
+                    <x-form.radio-group :label="$this->tr('mother_status')" model="mother_alive"
+                        :options="['1' => $this->tr('alive'), '0' => $this->tr('deceased')]" />
 
-                    <x-form.input label="จำนวนพี่น้อง (คน)" model="siblings_count" type="number" placeholder="0" />
-                    <x-form.input label="เป็นบุตรคนที่" model="birth_order" type="number" placeholder="0" />
+                    <x-form.input :label="$this->tr('siblings_count')" model="siblings_count" type="number" placeholder="0" />
+                    <x-form.input :label="$this->tr('birth_order')" model="birth_order" type="number" placeholder="0" />
                 </div>
 
                 {{-- ทหาร & ประวัติ --}}
-                <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติ" english="Military Service" />
+                <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติ" english="Military Service" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-form.radio-group label="สถานะภาพทางการทหาร" model="military_status" required
-                        :options="['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร']" />
-                    <x-form.radio-group label="มีประวัติหมิ่นพระบรมเดชานุภาพ" model="has_lese_majeste_record" required live
-                        :options="['1' => 'มี', '0' => 'ไม่มี']" />
+                    <x-form.radio-group :label="$this->tr('military_status')" model="military_status" required
+                        :options="['exempted' => $this->tr('military_exempted'), 'completed' => $this->tr('military_completed'), 'awaiting_conscription' => $this->tr('military_awaiting')]" />
+                    <x-form.radio-group :label="$this->tr('lese_majeste')" model="has_lese_majeste_record" required live
+                        :options="['1' => $this->tr('yes'), '0' => $this->tr('no')]" />
                 </div>
                 @if ($has_lese_majeste_record === '1')
                     <div class="mt-5">
-                        <x-form.input label="รายละเอียด" model="lese_majeste_detail" required />
+                        <x-form.input :label="$this->tr('lese_majeste_detail')" model="lese_majeste_detail" required />
                     </div>
                 @endif
 
                 <div class="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-stone-100 pt-6 sm:flex-row">
                     <a href="{{ url('/') }}" wire:navigate class="text-sm font-medium text-stone-500 hover:text-stone-700">
-                        &larr; กลับหน้าแรก
+                        &larr; {{ $this->tr('back_home') }}
                     </a>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitPersonal">บันทึกและไปขั้นตอนถัดไป</span>
-                        <span wire:loading wire:target="submitPersonal">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitPersonal">{{ $this->tr('save_continue') }}</span>
+                        <span wire:loading wire:target="submitPersonal">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>
         @elseif ($step === 'education')
             <form wire:submit="submitEducation" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ประวัติการศึกษา <span class="font-normal text-stone-400">/ Educational Background</span></h1>
-                <p class="mt-1 text-sm text-stone-500">กรอกข้อมูลการศึกษาตามระดับที่ท่านสำเร็จ (เว้นว่างได้หากไม่มี)</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_education') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('education_subtitle') }}</p>
 
                 @foreach ($this->educationLevels() as $level => $levelLabel)
-                    <x-form.section-title :thai="$levelLabel['th']" :english="$levelLabel['en']" />
+                    <x-form.section-title :thai="$levelLabel['th']" :english="$levelLabel['en']" :locale="$locale" />
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <x-form.input label="ชื่อสถาบัน" model="education.{{ $level }}.institution_name" placeholder="ชื่อสถาบัน" wrapper-class="sm:col-span-2" />
-                        <x-form.input label="จังหวัด/ประเทศ" model="education.{{ $level }}.province_country" placeholder="จังหวัด/ประเทศ" />
-                        <x-form.input label="เกรดเฉลี่ย (GPA)" model="education.{{ $level }}.gpa" type="number" step="0.01" placeholder="เช่น 3.50" />
+                        <x-form.input :label="$this->tr('institution_name')" model="education.{{ $level }}.institution_name" :placeholder="$this->tr('institution_name_ph')" wrapper-class="sm:col-span-2" />
+                        <x-form.input :label="$this->tr('province_country')" model="education.{{ $level }}.province_country" :placeholder="$this->tr('province_country')" />
+                        <x-form.input :label="$this->tr('gpa')" model="education.{{ $level }}.gpa" type="number" step="0.01" :placeholder="$this->tr('gpa_ph')" />
 
-                        <x-form.input label="เริ่มต้นปี (พ.ศ.)" model="education.{{ $level }}.start_year" type="number" placeholder="เช่น 2538" />
-                        <x-form.input label="ถึงปี (พ.ศ.)" model="education.{{ $level }}.end_year" type="number" placeholder="เช่น 2541" />
-                        <x-form.input label="วิชาที่ศึกษา / วุฒิที่ได้รับ" model="education.{{ $level }}.major" placeholder="เช่น สายวิทย์-คณิต" wrapper-class="sm:col-span-2" />
+                        <x-form.input :label="$this->tr('start_year')" model="education.{{ $level }}.start_year" type="number" :placeholder="$this->tr('start_year_ph')" />
+                        <x-form.input :label="$this->tr('end_year')" model="education.{{ $level }}.end_year" type="number" :placeholder="$this->tr('end_year_ph')" />
+                        <x-form.input :label="$this->tr('major')" model="education.{{ $level }}.major" :placeholder="$this->tr('major_ph')" wrapper-class="sm:col-span-2" />
                     </div>
                 @endforeach
 
@@ -959,15 +1242,15 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'personal')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับ
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitEducation">บันทึกและไปขั้นตอนถัดไป</span>
-                        <span wire:loading wire:target="submitEducation">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitEducation">{{ $this->tr('save_continue') }}</span>
+                        <span wire:loading wire:target="submitEducation">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>
@@ -976,28 +1259,28 @@ new #[Layout('layouts.application')] class extends Component
                 $levelOptions = ['0' => '0', '1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5'];
             @endphp
             <form wire:submit="submitLanguage" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ความสามารถด้านภาษา <span class="font-normal text-stone-400">/ Languages</span></h1>
-                <p class="mt-1 text-sm text-stone-500">ประเมินระดับความสามารถทางภาษาตามความเป็นจริง โดยเรียงลำดับจากน้อย (0 = ไม่มีความสามารถเลย) ไปถึงมากที่สุด (5 = คล่องแคล่ว)</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_language') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('language_subtitle') }}</p>
 
                 @foreach ($this->languageKeys() as $lang => $langLabel)
-                    <x-form.section-title :thai="$langLabel['th']" :english="$langLabel['en']" />
+                    <x-form.section-title :thai="$langLabel['th']" :english="$langLabel['en']" :locale="$locale" />
 
                     @if ($lang === 'other')
                         <div class="mb-5">
-                            <x-form.input label="ระบุชื่อภาษา" model="languages.other.custom_language_name" placeholder="เช่น ญี่ปุ่น, เกาหลี" />
+                            <x-form.input :label="$this->tr('other_language_name')" model="languages.other.custom_language_name" :placeholder="$this->tr('other_language_name_ph')" />
                         </div>
                     @endif
 
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <x-form.radio-group label="การพูด" model="languages.{{ $lang }}.speaking_level" :required="$lang !== 'other'" :options="$levelOptions" />
-                        <x-form.radio-group label="การเข้าใจ" model="languages.{{ $lang }}.understanding_level" :required="$lang !== 'other'" :options="$levelOptions" />
-                        <x-form.radio-group label="การอ่าน" model="languages.{{ $lang }}.reading_level" :required="$lang !== 'other'" :options="$levelOptions" />
-                        <x-form.radio-group label="การเขียน" model="languages.{{ $lang }}.writing_level" :required="$lang !== 'other'" :options="$levelOptions" />
+                        <x-form.radio-group :label="$this->tr('speaking')" model="languages.{{ $lang }}.speaking_level" :required="$lang !== 'other'" :options="$levelOptions" />
+                        <x-form.radio-group :label="$this->tr('understanding')" model="languages.{{ $lang }}.understanding_level" :required="$lang !== 'other'" :options="$levelOptions" />
+                        <x-form.radio-group :label="$this->tr('reading')" model="languages.{{ $lang }}.reading_level" :required="$lang !== 'other'" :options="$levelOptions" />
+                        <x-form.radio-group :label="$this->tr('writing')" model="languages.{{ $lang }}.writing_level" :required="$lang !== 'other'" :options="$levelOptions" />
                     </div>
                 @endforeach
 
-                <x-form.section-title thai="ใบรับรองด้านภาษา" english="Certificate of Languages" />
-                <x-form.input label="ใบรับรองด้านภาษา (ถ้ามี)" model="language_certificate_note" placeholder="เช่น TOEIC 750, HSK 4" />
+                <x-form.section-title thai="ใบรับรองด้านภาษา" english="Certificate of Languages" :locale="$locale" />
+                <x-form.input :label="$this->tr('language_cert_label')" model="language_certificate_note" :placeholder="$this->tr('language_cert_ph')" />
 
                 <div class="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-stone-100 pt-6 sm:flex-row">
                     <button
@@ -1005,46 +1288,46 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'education')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับ
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitLanguage">บันทึกและไปขั้นตอนถัดไป</span>
-                        <span wire:loading wire:target="submitLanguage">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitLanguage">{{ $this->tr('save_continue') }}</span>
+                        <span wire:loading wire:target="submitLanguage">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>
         @elseif ($step === 'work')
             <form wire:submit="submitWork" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ประวัติการทำงาน <span class="font-normal text-stone-400">/ Employment History</span></h1>
-                <p class="mt-1 text-sm text-stone-500">กรอกประวัติการทำงานย้อนหลัง เรียงจากล่าสุด (เว้นว่างได้หากไม่มี) สูงสุด 4 สถานประกอบการ</p>
-                <p class="mt-1 text-xs text-stone-400">** หมายเหตุ ** ประสบการณ์ฝึกงานสามารถใส่ได้เช่นกัน</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_work') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('work_subtitle') }}</p>
+                <p class="mt-1 text-xs text-stone-400">{{ $this->tr('work_note') }}</p>
 
                 @for ($i = 1; $i <= 4; $i++)
-                    <x-form.section-title thai="สถานประกอบที่ {{ $i }}" english="Establishment {{ $i }}" />
+                    <x-form.section-title thai="{{ $this->tr('establishment') }} {{ $i }}" english="Establishment {{ $i }}" :locale="$locale" />
 
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <x-form.input label="ชื่อสถานประกอบการ" model="workHistories.{{ $i }}.company_name" placeholder="ชื่อสถานประกอบการ" />
-                        <x-form.input label="ตำแหน่ง" model="workHistories.{{ $i }}.position" placeholder="ตำแหน่ง" />
+                        <x-form.input :label="$this->tr('company_name')" model="workHistories.{{ $i }}.company_name" :placeholder="$this->tr('company_name')" />
+                        <x-form.input :label="$this->tr('work_position')" model="workHistories.{{ $i }}.position" :placeholder="$this->tr('work_position')" />
                     </div>
 
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-                        <x-form.input label="เริ่มต้นปี (พ.ศ.)" model="workHistories.{{ $i }}.start_year" type="number" placeholder="เช่น 2560" live />
-                        <x-form.input label="ถึงปี (พ.ศ.)" model="workHistories.{{ $i }}.end_year" type="number" placeholder="เช่น 2563" live />
-                        <x-form.input label="ระยะเวลาทั้งหมด" model="work_duration_{{ $i }}" value="{{ $this->workDuration($i) }}" disabled placeholder="-" />
+                        <x-form.input :label="$this->tr('work_start_year')" model="workHistories.{{ $i }}.start_year" type="number" :placeholder="$this->tr('work_start_year_ph')" live />
+                        <x-form.input :label="$this->tr('work_end_year')" model="workHistories.{{ $i }}.end_year" type="number" :placeholder="$this->tr('work_end_year_ph')" live />
+                        <x-form.input :label="$this->tr('work_duration')" model="work_duration_{{ $i }}" value="{{ $this->workDuration($i) }}" disabled placeholder="-" />
                     </div>
 
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-                        <x-form.input label="ชื่อหัวหน้างาน" model="workHistories.{{ $i }}.supervisor_name" placeholder="ชื่อ-นามสกุล" />
-                        <x-form.input label="เบอร์โทร" model="workHistories.{{ $i }}.supervisor_phone" placeholder="เบอร์โทร" />
-                        <x-form.input label="เงินเดือนล่าสุด (บาท)" model="workHistories.{{ $i }}.last_salary" type="number" step="0.01" placeholder="เช่น 50000" />
+                        <x-form.input :label="$this->tr('supervisor_name')" model="workHistories.{{ $i }}.supervisor_name" :placeholder="$this->tr('full_name_ph')" />
+                        <x-form.input :label="$this->tr('supervisor_phone')" model="workHistories.{{ $i }}.supervisor_phone" :placeholder="$this->tr('phone_ph')" />
+                        <x-form.input :label="$this->tr('last_salary')" model="workHistories.{{ $i }}.last_salary" type="number" step="0.01" :placeholder="$this->tr('last_salary_ph')" />
                     </div>
 
                     <div class="mt-5">
-                        <x-form.textarea label="สาเหตุที่ออก" model="workHistories.{{ $i }}.resignation_reason" placeholder="สาเหตุที่ออกจากงาน" />
+                        <x-form.textarea :label="$this->tr('resignation_reason')" model="workHistories.{{ $i }}.resignation_reason" :placeholder="$this->tr('resignation_reason_ph')" />
                     </div>
                 @endfor
 
@@ -1054,89 +1337,91 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'language')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับ
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitWork">บันทึกและไปขั้นตอนถัดไป</span>
-                        <span wire:loading wire:target="submitWork">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitWork">{{ $this->tr('save_continue') }}</span>
+                        <span wire:loading wire:target="submitWork">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>
         @elseif ($step === 'other')
             <form wire:submit="submitOther" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ข้อมูลอื่นๆ <span class="font-normal text-stone-400">/ Other information</span></h1>
-                <p class="mt-1 text-sm text-stone-500">ข้อมูลเพิ่มเติมสำหรับการพิจารณา</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_other') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('other_subtitle') }}</p>
 
                 @for ($i = 1; $i <= 2; $i++)
                     <x-form.section-title
                         thai="บุคคลคนที่ {{ $i }} ที่ไม่ใช่ญาติซึ่งทราบประวัติของท่านและบริษัทสามารถสอบถามได้"
-                        english="Persons other than relatives can be contacted" />
+                        english="Persons other than relatives can be contacted"
+                        :locale="$locale" />
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <x-form.input label="ชื่อ - นามสกุล" model="references.{{ $i }}.name" :required="$i === 1" placeholder="ชื่อ - นามสกุล" />
-                        <x-form.input label="ความสัมพันธ์" model="references.{{ $i }}.relationship" :required="$i === 1" placeholder="เช่น เพื่อน" />
+                        <x-form.input :label="$this->tr('ref_name')" model="references.{{ $i }}.name" :required="$i === 1" :placeholder="$this->tr('ref_name_ph')" />
+                        <x-form.input :label="$this->tr('ref_relationship')" model="references.{{ $i }}.relationship" :required="$i === 1" :placeholder="$this->tr('ref_relationship_ph')" />
                     </div>
                     <div class="mt-5">
-                        <x-form.input label="สถานที่ทำงาน-ที่อยู่" model="references.{{ $i }}.workplace_address" :required="$i === 1" placeholder="สถานที่ทำงาน / ที่อยู่" />
+                        <x-form.input :label="$this->tr('ref_workplace')" model="references.{{ $i }}.workplace_address" :required="$i === 1" :placeholder="$this->tr('ref_workplace_ph')" />
                     </div>
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <x-form.input label="ตำแหน่ง" model="references.{{ $i }}.position" placeholder="ตำแหน่ง" />
-                        <x-form.input label="เบอร์โทร" model="references.{{ $i }}.phone" :required="$i === 1" placeholder="เบอร์โทร" />
+                        <x-form.input :label="$this->tr('ref_position')" model="references.{{ $i }}.position" :placeholder="$this->tr('ref_position')" />
+                        <x-form.input :label="$this->tr('ref_phone')" model="references.{{ $i }}.phone" :required="$i === 1" :placeholder="$this->tr('ref_phone_ph')" />
                     </div>
                 @endfor
 
-                <x-form.section-title thai="ความสามารถพิเศษ & เงื่อนไขการทำงาน" english="Special ability & Working conditions" />
+                <x-form.section-title thai="ความสามารถพิเศษ & เงื่อนไขการทำงาน" english="Special ability & Working conditions" :locale="$locale" />
                 <div class="mb-5">
-                    <x-form.textarea label="ความรู้ความสามารถพิเศษ" model="special_skills" placeholder="ความรู้ความสามารถพิเศษ" />
+                    <x-form.textarea :label="$this->tr('special_skills_label')" model="special_skills" :placeholder="$this->tr('special_skills_label')" />
                 </div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-form.radio-group label="สามารถหาผู้ค้ำประกันได้หรือไม่" model="guarantor_required_ok" :options="['1' => 'ได้', '0' => 'ไม่ได้']" />
-                    <x-form.radio-group label="สามารถทำงานเป็นกะหมุนเวียนได้หรือไม่" model="shift_work_ok" :options="['1' => 'ได้', '0' => 'ไม่ได้']" />
+                    <x-form.radio-group :label="$this->tr('guarantor_label')" model="guarantor_required_ok" :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
+                    <x-form.radio-group :label="$this->tr('shift_label')" model="shift_work_ok" :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
                 </div>
 
-                <x-form.section-title thai="ข้อมูลด้านการเงิน" english="Financial Information" />
+                <x-form.section-title thai="ข้อมูลด้านการเงิน" english="Financial Information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.input label="เงินที่ชำระหนี้นอกระบบ (บาท/เดือน)" model="informal_debt_amount" type="number" step="0.01" placeholder="0" />
-                    <x-form.input label="ดอกเบี้ย (ร้อยละ/เดือน)" model="informal_debt_interest_rate" type="number" step="0.01" placeholder="0" />
-                    <x-form.input label="วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)" model="credit_card_debt_amount" type="number" step="0.01" placeholder="0" />
-                    <x-form.input label="ยอดค้างชำระ (บาท)" model="total_outstanding_balance" type="number" step="0.01" placeholder="0" />
+                    <x-form.input :label="$this->tr('debt_amount')" model="informal_debt_amount" type="number" step="0.01" placeholder="0" />
+                    <x-form.input :label="$this->tr('debt_interest')" model="informal_debt_interest_rate" type="number" step="0.01" placeholder="0" />
+                    <x-form.input :label="$this->tr('credit_debt')" model="credit_card_debt_amount" type="number" step="0.01" placeholder="0" />
+                    <x-form.input :label="$this->tr('outstanding_balance')" model="total_outstanding_balance" type="number" step="0.01" placeholder="0" />
                 </div>
 
-                <x-form.section-title thai="ประวัติสุขภาพ" english="Health History" />
-                <x-form.textarea label="ในช่วง 3 ปีที่ผ่านมา เคยเจ็บป่วยเข้าโรงพยาบาลหรือประสบอุบัติเหตุหรือไม่ (ถ้ามีระบุรายละเอียด)" model="illness_or_accident_history" placeholder="รายละเอียด (ถ้ามี)" />
+                <x-form.section-title thai="ประวัติสุขภาพ" english="Health History" :locale="$locale" />
+                <x-form.textarea :label="$this->tr('illness_label')" model="illness_or_accident_history" :placeholder="$this->tr('illness_ph')" />
 
-                <x-form.section-title thai="ข้อมูลอื่นๆ" english="Additional information" />
+                <x-form.section-title thai="ข้อมูลอื่นๆ" english="Additional information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    <x-form.input label="บุคคลในบริษัทที่รู้จัก/แนะนำ" model="known_person_in_company" placeholder="ชื่อ-นามสกุล" />
-                    <x-form.input label="ความสัมพันธ์" model="known_person_relation" placeholder="ความสัมพันธ์" />
-                    <x-form.input label="วันที่พร้อมเริ่มงาน" model="available_start_date" type="date" />
+                    <x-form.input :label="$this->tr('known_person')" model="known_person_in_company" :placeholder="$this->tr('full_name_ph')" />
+                    <x-form.input :label="$this->tr('ref_relationship')" model="known_person_relation" :placeholder="$this->tr('ref_relationship')" />
+                    <x-form.input :label="$this->tr('start_date_label')" model="available_start_date" type="date" />
                 </div>
                 <div class="mt-5">
-                    <x-form.checkbox-group label="ช่องทางที่ทราบข่าวการรับสมัคร" model="source_channels" :options="$this->sourceChannelOptions()" live />
+                    <x-form.checkbox-group :label="$this->tr('source_channels_label')" model="source_channels" :options="$this->sourceChannelOptions($locale)" live />
                 </div>
                 @if (in_array('อื่นๆ', $source_channels) || in_array('เพื่อน/ญาติแนะนำ', $source_channels))
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                         @if (in_array('อื่นๆ', $source_channels))
-                            <x-form.input label="ระบุช่องทางอื่นๆ" model="source_channel_other" placeholder="ระบุ" />
+                            <x-form.input :label="$this->tr('source_other_label')" model="source_channel_other" :placeholder="$this->tr('source_other_ph')" />
                         @endif
                         @if (in_array('เพื่อน/ญาติแนะนำ', $source_channels))
-                            <x-form.input label="ชื่อเพื่อน/ญาติที่แนะนำ" model="referred_friend_name" placeholder="ชื่อ-นามสกุล" />
+                            <x-form.input :label="$this->tr('referred_friend_label')" model="referred_friend_name" :placeholder="$this->tr('full_name_ph')" />
                         @endif
                     </div>
                 @endif
 
-                <x-form.section-title thai="เอกสารแนบ" english="Attachment (JPG, PNG, PDF)" />
+                <x-form.section-title thai="เอกสารแนบ" english="Attachment (JPG, PNG, PDF)" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     @foreach ($this->documentTypes() as $type => $meta)
                         <x-form.file
-                            :label="$meta['th']"
-                            :hint="$meta['en']"
+                            :label="$meta[$locale]"
+                            :hint="$locale !== 'en' ? $meta['en'] : null"
                             model="documents.{{ $type }}"
                             :accept="$meta['accept']"
                             :required="$meta['required']"
+                            :locale="$locale"
                         />
                     @endforeach
                 </div>
@@ -1147,58 +1432,54 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'work')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับ
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitOther">บันทึกและไปขั้นตอนถัดไป</span>
-                        <span wire:loading wire:target="submitOther">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitOther">{{ $this->tr('save_continue') }}</span>
+                        <span wire:loading wire:target="submitOther">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>
         @elseif ($step === 'schedule')
             <form wire:submit="submitSchedule" class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">วันและเวลาปฏิบัติงาน <span class="font-normal text-stone-400">/ Working days and hours</span></h1>
-                <p class="mt-1 text-sm text-stone-500">กรุณาอ่านรายละเอียดเวลาปฏิบัติงานและยินยอมข้อตกลงก่อนส่งใบสมัคร</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_schedule') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('schedule_subtitle') }}</p>
 
                 <div class="mt-6 space-y-4">
                     <div class="rounded-xl bg-amber-50/60 p-5">
-                        <h3 class="text-sm font-semibold text-amber-700">กลุ่มพนักงานที่ไม่เกี่ยวข้องกับการผลิต <span class="font-normal text-stone-400">/ Employee group that is not related to the production</span></h3>
+                        <h3 class="text-sm font-semibold text-amber-700">{{ $this->tr('non_production_title') }}</h3>
                         <ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-stone-600">
-                            <li>ในสัปดาห์ที่ 1, 3 ปฏิบัติงานวันจันทร์ ถึง วันศุกร์ และวันเสาร์ทำงานในรูปแบบ Work From Anywhere เวลาปฏิบัติงานครึ่งวันเช้า</li>
-                            <li>ในสัปดาห์ที่ 2, 4 ปฏิบัติงานวันจันทร์ ถึง วันศุกร์ วันเสาร์เป็นวันหยุดประจำสัปดาห์</li>
-                            <li>ในสัปดาห์ที่ 5 ปฏิบัติงานวันเสาร์ (ทำกิจกรรม CSR) เวลาปฏิบัติงานตามข้อบังคับการทำงานของแต่ละบริษัท</li>
+                            <li>{{ $this->tr('non_production_bullet1') }}</li>
+                            <li>{{ $this->tr('non_production_bullet2') }}</li>
+                            <li>{{ $this->tr('non_production_bullet3') }}</li>
                         </ul>
                     </div>
 
                     <div class="rounded-xl bg-amber-50/60 p-5">
-                        <h3 class="text-sm font-semibold text-amber-700">กลุ่มพนักงานที่เกี่ยวข้องกับการผลิต <span class="font-normal text-stone-400">/ Employee group that is related to the production</span></h3>
+                        <h3 class="text-sm font-semibold text-amber-700">{{ $this->tr('production_title') }}</h3>
                         <ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-stone-600">
-                            <li>ปฏิบัติงานวันจันทร์ ถึง วันเสาร์ เวลาปฏิบัติงานตามข้อบังคับการทำงานของแต่ละบริษัท (เลือกหยุดวันเสาร์ได้ 2 วันต่อเดือน)</li>
+                            <li>{{ $this->tr('production_bullet1') }}</li>
                         </ul>
                     </div>
                 </div>
 
-                <x-form.section-title thai="ข้อตกลงและการยินยอม" english="Consent" />
+                <x-form.section-title thai="ข้อตกลงและการยินยอม" english="Consent" :locale="$locale" />
                 <div class="space-y-4">
                     <x-form.checkbox model="data_accuracy_consent" required>
-                        ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริงทุกประการ หากข้อความตอนหนึ่งตอนใดไม่ตรงกับความเป็นจริง ข้าพเจ้าขอยอมรับว่าการว่าจ้างที่ตกลงนั้นเป็นอันโมฆะทันที
-                        และยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และการเป็นพนักงานของบริษัทได้
-                        <span class="mt-1 block text-xs text-stone-400">I certify that my answers are true and complete to the best of my knowledge. If this application leads to employment, I understand that false or misleading information in my application or interview may result in my release. I consent to the disclosure and verification on personal information all the time for applying for a job and being an employee of the company.</span>
+                        {{ $this->tr('data_accuracy_consent') }}
                     </x-form.checkbox>
 
                     <x-form.checkbox model="privacy_policy_consent" required>
-                        ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล สำหรับบุคลากรของบริษัท ข้าพเจ้ารับทราบและยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ
-                        ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และตลอดระยะเวลาการเป็นพนักงานของบริษัท
-                        <span class="mt-1 block text-xs text-stone-400">I have read the privacy policy for company personnel. I acknowledge and consent to disclosure and verification on personal information all the time for applying for a job and being an employee of the company.</span>
+                        {{ $this->tr('privacy_policy_consent') }}
                     </x-form.checkbox>
                 </div>
 
                 <div class="mt-6 max-w-sm">
-                    <x-form.input label="ลงชื่อผู้สมัครงาน (พิมพ์ชื่อ-นามสกุล)" model="signature_name" required placeholder="ชื่อ-นามสกุล" />
+                    <x-form.input :label="$this->tr('signature_label')" model="signature_name" required :placeholder="$this->tr('full_name_ph')" />
                 </div>
 
                 <div class="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-stone-100 pt-6 sm:flex-row">
@@ -1207,15 +1488,15 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'other')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับ
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="submitSchedule">ไปที่หน้าตรวจสอบข้อมูล</span>
-                        <span wire:loading wire:target="submitSchedule">กำลังบันทึก...</span>
+                        <span wire:loading.remove wire:target="submitSchedule">{{ $this->tr('continue_to_review') }}</span>
+                        <span wire:loading wire:target="submitSchedule">{{ $this->tr('saving') }}</span>
                     </button>
                 </div>
             </form>

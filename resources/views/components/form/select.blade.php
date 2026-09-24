@@ -1,4 +1,8 @@
-@props(['label', 'model', 'options' => [], 'required' => false, 'placeholder' => '--เลือก--', 'live' => false])
+@props(['label', 'model', 'options' => [], 'required' => false, 'placeholder' => null, 'live' => false, 'locale' => 'th'])
+
+@php
+    $placeholder ??= $locale === 'en' ? '--Select--' : '--เลือก--';
+@endphp
 
 <div>
     <label class="block text-sm font-medium text-stone-700">
