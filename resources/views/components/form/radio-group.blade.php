@@ -1,7 +1,7 @@
 @props(['label', 'model', 'options' => [], 'required' => false, 'live' => false])
 
 <div>
-    <label class="block text-sm font-medium text-stone-700">
+    <label class="block min-h-10 text-sm font-medium text-stone-700">
         {{ $label }} @if ($required)<span class="text-red-500">*</span>@endif
     </label>
     <div class="mt-2 flex flex-wrap gap-x-6 gap-y-2">

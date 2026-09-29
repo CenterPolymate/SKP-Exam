@@ -16,6 +16,10 @@ Volt::route('admin/applicants/{applicant}', 'pages.admin.applicant-detail')
     ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.applicants.show');
 
+Volt::route('admin/summary/applicants/{applicant}', 'pages.admin.summary-applicant-detail')
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('admin.summary.applicants.show');
+
 Volt::route('admin/positions', 'pages.admin.positions')
     ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.positions.index');

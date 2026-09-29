@@ -1,7 +1,7 @@
 @props(['label', 'model', 'type' => 'text', 'required' => false, 'placeholder' => null, 'live' => false, 'disabled' => false, 'wrapperClass' => ''])
 
 <div class="{{ $wrapperClass }}">
-    <label class="block text-sm font-medium text-stone-700">
+    <label class="block min-h-10 text-sm font-medium text-stone-700">
         {{ $label }} @if ($required)<span class="text-red-500">*</span>@endif
     </label>
     <input

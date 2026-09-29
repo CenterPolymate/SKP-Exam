@@ -354,7 +354,7 @@ new #[Layout('layouts.admin')] class extends Component
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right">
-                                    <a href="{{ route('admin.applicants.show', $applicant) }}" wire:navigate
+                                    <a href="{{ route('admin.summary.applicants.show', $applicant) }}" wire:navigate
                                        class="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-[#BA772A] hover:text-[#BA772A]">
                                         รายละเอียด
                                     </a>

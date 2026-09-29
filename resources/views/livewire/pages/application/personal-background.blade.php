@@ -1417,7 +1417,6 @@ new #[Layout('layouts.application')] class extends Component
                     @foreach ($this->documentTypes() as $type => $meta)
                         <x-form.file
                             :label="$meta[$locale]"
-                            :hint="$locale !== 'en' ? $meta['en'] : null"
                             model="documents.{{ $type }}"
                             :accept="$meta['accept']"
                             :required="$meta['required']"
