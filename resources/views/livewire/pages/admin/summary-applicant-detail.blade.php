@@ -691,10 +691,10 @@ new #[Layout('layouts.admin')] class extends Component
 
             $existing = $this->applicant->documents->firstWhere('document_type', $type);
             if ($existing) {
-                Storage::disk('public')->delete($existing->file_path);
+                Storage::disk('local')->delete($existing->file_path);
             }
 
-            $path = $file->store("applicant-documents/{$this->applicant->id}", 'public');
+            $path = $file->store("applicant-documents/{$this->applicant->id}", 'local');
 
             ApplicantDocument::updateOrCreate(
                 ['applicant_id' => $this->applicant->id, 'document_type' => $type],
@@ -1086,7 +1086,7 @@ new #[Layout('layouts.admin')] class extends Component
                         @if ($existingDoc)
                             <div class="mt-2 flex items-center justify-between gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
                                 <span class="truncate">{{ $existingDoc->original_filename }}</span>
-                                <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($existingDoc->file_path) }}" target="_blank"
+                                <a href="{{ route('secure-files.applicant-document', $existingDoc) }}" target="_blank"
                                    class="shrink-0 font-semibold underline hover:text-green-900">
                                     ดูตัวอย่าง/ดาวน์โหลด
                                 </a>

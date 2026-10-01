@@ -48,6 +48,14 @@ class ExamLoginForm extends Form
             ]);
         }
 
+        if ($assignment->isExpired()) {
+            $assignment->markApplicantFailedIfExpired();
+
+            throw ValidationException::withMessages([
+                'form.username' => 'บัญชีนี้หมดอายุการเข้าใช้งานระบบสอบแล้ว',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         Auth::guard('exam_applicant')->login($assignment);

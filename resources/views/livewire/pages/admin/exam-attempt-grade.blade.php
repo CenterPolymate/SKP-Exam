@@ -101,7 +101,13 @@ new #[Layout('layouts.admin')] class extends Component
                         </span>
                     </div>
 
-                    <p class="mt-3 whitespace-pre-line text-stone-800">{{ $q->question_text }}</p>
+                    <div class="mt-3">
+                        @if ($q->content_format === 'image' && $q->question_image_path)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($q->question_image_path) }}" class="max-h-80 rounded-lg ring-1 ring-stone-200">
+                        @else
+                            <p class="whitespace-pre-line text-stone-800">{{ $q->question_text }}</p>
+                        @endif
+                    </div>
                     <p class="mt-1 text-xs text-stone-400">คะแนนเต็ม {{ rtrim(rtrim(number_format((float) $q->points, 2), '0'), '.') }} คะแนน</p>
 
                     <div class="mt-4 rounded-lg bg-stone-50 p-4">
@@ -118,7 +124,7 @@ new #[Layout('layouts.admin')] class extends Component
                             </p>
                         @elseif ($q->answer_format === 'file')
                             @if ($answer?->answer_file_path)
-                                <a href="{{ \Illuminate\Support\Facades\Storage::url($answer->answer_file_path) }}" target="_blank" class="text-sm font-medium text-[#BA772A] hover:underline">ดูไฟล์คำตอบที่แนบไว้</a>
+                                <a href="{{ route('secure-files.exam-answer', $answer) }}" target="_blank" class="text-sm font-medium text-[#BA772A] hover:underline">ดูไฟล์คำตอบที่แนบไว้</a>
                             @else
                                 <p class="text-sm text-stone-400">ผู้สมัครไม่ได้แนบไฟล์คำตอบ</p>
                             @endif

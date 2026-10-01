@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // 'serve' ต้องเป็น false เพราะ disk นี้เก็บเอกสารส่วนตัวผู้สมัคร/คำตอบข้อสอบ
+            // ต้องเข้าถึงผ่าน SecureFileController (ที่ตรวจสิทธิ์) เท่านั้น ห้ามเปิด route ตรงแบบไม่ล็อกอิน
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

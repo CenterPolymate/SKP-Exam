@@ -940,7 +940,7 @@ new #[Layout('layouts.application')] class extends Component
                 continue;
             }
 
-            $path = $file->store("applicant-documents/{$this->applicantId}", 'public');
+            $path = $file->store("applicant-documents/{$this->applicantId}", 'local');
 
             ApplicantDocument::updateOrCreate(
                 ['applicant_id' => $this->applicantId, 'document_type' => $type],

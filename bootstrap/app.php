@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureExamNotExpired;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'exam.not_expired' => EnsureExamNotExpired::class,
         ]);
 
         // landingLang ถูกตั้งค่าฝั่ง client ด้วย JS ธรรมดา (Alpine) จึงไม่เข้ารหัส

@@ -45,4 +45,23 @@ class ExamAssignment extends Model implements AuthenticatableContract
     {
         return $this->hasMany(ExamAttempt::class);
     }
+
+    public function isExpired(): bool
+    {
+        return $this->exam_deadline !== null
+            && now()->toDateString() > $this->exam_deadline->toDateString();
+    }
+
+    public function markApplicantFailedIfExpired(): void
+    {
+        if (! $this->isExpired()) {
+            return;
+        }
+
+        // เปลี่ยนสถานะเป็น "ไม่ผ่านการทดสอบ" เฉพาะกรณีที่ยังไม่ได้ส่งข้อสอบทันเวลา
+        // (ถ้าส่งครบแล้วรอ HR ตรวจ หรือตรวจผลแล้ว ต้องไม่ไปทับสถานะเดิม)
+        if ($this->applicant && $this->applicant->status === 'code_generated') {
+            $this->applicant->update(['status' => 'failed_test']);
+        }
+    }
 }

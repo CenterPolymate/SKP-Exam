@@ -55,6 +55,7 @@ new #[Layout('layouts.exam-app')] class extends Component
             $answer = $existing->get($question->id);
 
             $this->answers[$question->id] = [
+                'id' => $answer?->id,
                 'selected_choice_id' => $answer?->selected_choice_id,
                 'selected_choice_ids' => $answer?->selected_choice_ids ?? [],
                 'answer_text' => $answer?->answer_text ?? '',
@@ -69,9 +70,9 @@ new #[Layout('layouts.exam-app')] class extends Component
         return $this->attempt->exam->questions[$this->currentIndex];
     }
 
-    protected function saveAnswer(int $questionId, array $data): void
+    protected function saveAnswer(int $questionId, array $data): ExamAnswer
     {
-        ExamAnswer::updateOrCreate(
+        return ExamAnswer::updateOrCreate(
             ['exam_attempt_id' => $this->attempt->id, 'exam_question_id' => $questionId],
             $data
         );
@@ -106,11 +107,12 @@ new #[Layout('layouts.exam-app')] class extends Component
             return;
         }
 
-        $path = $file->store("exam-answers/{$this->attempt->id}", 'public');
+        $path = $file->store("exam-answers/{$this->attempt->id}", 'local');
 
         $this->answers[$questionId]['answer_file_path'] = $path;
         $this->pendingFiles[$questionId] = null;
-        $this->saveAnswer($questionId, ['answer_file_path' => $path]);
+        $answer = $this->saveAnswer($questionId, ['answer_file_path' => $path]);
+        $this->answers[$questionId]['id'] = $answer->id;
     }
 
     public function removeAnswerFile(int $questionId): void
@@ -208,7 +210,7 @@ new #[Layout('layouts.exam-app')] class extends Component
     }
 }; ?>
 
-<div class="min-h-screen bg-[#FAF3E7] pb-16" x-data="{
+<div class="min-h-screen select-none bg-[#FAF3E7] pb-16" x-data="{
         remaining: {{ max(0, $deadlineTimestamp - now()->timestamp) }},
         confirmingSubmit: false,
         tick() {
@@ -220,8 +222,32 @@ new #[Layout('layouts.exam-app')] class extends Component
             let m = Math.floor((this.remaining % 3600) / 60);
             let s = this.remaining % 60;
             return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        },
+        isEditableTarget(e) {
+            return e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT';
+        },
+        blockCopyLikeEvent(e) {
+            if (!this.isEditableTarget(e)) e.preventDefault();
+        },
+        blockCopyKeys(e) {
+            const key = e.key.toLowerCase();
+            const ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+            if (!this.isEditableTarget(e) && ctrlOrCmd && ['c', 'x', 'a', 'p', 's', 'u'].includes(key)) {
+                e.preventDefault();
+            }
+
+            if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i', 'j', 'c'].includes(key))) {
+                e.preventDefault();
+            }
         }
-    }" x-init="setInterval(() => tick(), 1000)">
+    }"
+    x-init="setInterval(() => tick(), 1000)"
+    @copy="blockCopyLikeEvent($event)"
+    @cut="blockCopyLikeEvent($event)"
+    @contextmenu="blockCopyLikeEvent($event)"
+    @selectstart="blockCopyLikeEvent($event)"
+    @keydown.window="blockCopyKeys($event)">
     <header class="border-b border-stone-200 bg-white px-6 py-4">
         <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
             <div>
@@ -324,11 +350,11 @@ new #[Layout('layouts.exam-app')] class extends Component
                 @elseif ($q->question_type === 'essay' && $q->answer_format === 'text')
                     <textarea wire:model="answers.{{ $q->id }}.answer_text" wire:change="saveText({{ $q->id }})" rows="6"
                               placeholder="พิมพ์คำตอบของคุณที่นี่"
-                              class="w-full rounded-lg border-stone-300 text-sm text-stone-700 shadow-sm focus:border-[#BA772A] focus:ring-[#BA772A]"></textarea>
+                              class="w-full select-text rounded-lg border-stone-300 text-sm text-stone-700 shadow-sm focus:border-[#BA772A] focus:ring-[#BA772A]"></textarea>
                 @else
                     @if ($answers[$q->id]['answer_file_path'] ?? null)
                         <div class="flex items-center justify-between rounded-lg border border-stone-200 px-4 py-3 text-sm">
-                            <a href="{{ \Illuminate\Support\Facades\Storage::url($answers[$q->id]['answer_file_path']) }}" target="_blank" class="font-medium text-[#BA772A] hover:underline">ดูไฟล์ที่แนบไว้</a>
+                            <a href="{{ route('secure-files.exam-answer', $answers[$q->id]['id']) }}" target="_blank" class="font-medium text-[#BA772A] hover:underline">ดูไฟล์ที่แนบไว้</a>
                             <button type="button" wire:click="removeAnswerFile({{ $q->id }})" class="text-xs font-medium text-red-500 hover:text-red-700">ลบไฟล์</button>
                         </div>
                     @else

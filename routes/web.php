@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SecureFileController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -56,6 +57,14 @@ Volt::route('admin/summary', 'pages.admin.summary')
     ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.summary.index');
 
+Route::get('secure-files/applicant-documents/{document}', [SecureFileController::class, 'applicantDocument'])
+    ->middleware(['auth', 'verified', 'admin'])
+    ->name('secure-files.applicant-document');
+
+Route::get('secure-files/exam-answers/{answer}', [SecureFileController::class, 'examAnswer'])
+    ->middleware(['auth:web,exam_applicant'])
+    ->name('secure-files.exam-answer');
+
 Route::view('profile', 'profile')
     ->middleware(['auth', 'admin'])
     ->name('profile');
@@ -65,15 +74,15 @@ Volt::route('exam/login', 'pages.exam.login')
     ->name('exam.login');
 
 Volt::route('exam/dashboard', 'pages.exam.dashboard')
-    ->middleware('auth:exam_applicant')
+    ->middleware(['auth:exam_applicant', 'exam.not_expired'])
     ->name('exam.dashboard');
 
 Volt::route('exam/attempts/{attempt}/start', 'pages.exam.attempt-start')
-    ->middleware('auth:exam_applicant')
+    ->middleware(['auth:exam_applicant', 'exam.not_expired'])
     ->name('exam.attempts.start');
 
 Volt::route('exam/attempts/{attempt}/take', 'pages.exam.attempt-take')
-    ->middleware('auth:exam_applicant')
+    ->middleware(['auth:exam_applicant', 'exam.not_expired'])
     ->name('exam.attempts.take');
 
 require __DIR__.'/auth.php';

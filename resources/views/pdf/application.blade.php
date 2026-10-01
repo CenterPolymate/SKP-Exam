@@ -145,8 +145,8 @@
             </td>
             <td style="width:25%; text-align:center; vertical-align:middle;">
                 <div class="f-label">รูปถ่าย / PHOTO</div>
-                @if ($photoDoc && \Illuminate\Support\Facades\Storage::disk('public')->exists($photoDoc->file_path))
-                    <img src="{{ str_replace('\\', '/', \Illuminate\Support\Facades\Storage::disk('public')->path($photoDoc->file_path)) }}" style="width:70px; height:88px; margin-top:4px;">
+                @if ($photoDoc && \Illuminate\Support\Facades\Storage::disk('local')->exists($photoDoc->file_path))
+                    <img src="{{ str_replace('\\', '/', \Illuminate\Support\Facades\Storage::disk('local')->path($photoDoc->file_path)) }}" style="width:70px; height:88px; margin-top:4px;">
                 @else
                     <div style="width:70px; height:88px; border:1px dashed #a8a29e; margin:4px auto 0;"></div>
                 @endif
