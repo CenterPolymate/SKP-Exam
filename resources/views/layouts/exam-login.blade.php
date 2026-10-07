@@ -23,8 +23,8 @@
 
                 <div class="mt-5 flex items-center justify-center gap-5">
                     <img src="{{ asset('images/logos/sk-polymer.png') }}" alt="SK Polymer" class="h-10 w-auto object-contain">
-                    <img src="{{ asset('images/logos/trt.png') }}" alt="TRT" class="h-7 w-auto object-contain">
-                    <img src="{{ asset('images/logos/polymate.png') }}" alt="Polymate IT Solutions" class="h-7 w-auto object-contain">
+                    <img src="{{ asset('images/logos/trt.png') }}" alt="TRT" class="h-10 w-auto object-contain">
+                    <img src="{{ asset('images/logos/polymate.png') }}" alt="Polymate IT Solutions" class="h-10 w-auto object-contain">
                 </div>
 
                 <hr class="mt-6 border-stone-100">

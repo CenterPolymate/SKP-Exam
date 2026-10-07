@@ -84,9 +84,9 @@
 
                 {{-- Subsidiary company logos --}}
                 <div class="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-                    <img src="{{ asset('images/logos/sk-polymer.png') }}" alt="SK Polymer" class="h-9 sm:h-10 w-auto object-contain">
-                    <img src="{{ asset('images/logos/trt.png') }}" alt="TRT" class="h-9 sm:h-10 w-auto object-contain">
-                    <img src="{{ asset('images/logos/polymate.png') }}" alt="Polymate IT Solutions" class="h-9 sm:h-10 w-auto object-contain">
+                    <img src="{{ asset('images/logos/sk-polymer.png') }}" alt="SK Polymer" class="h-16 sm:h-20 w-auto object-contain">
+                    <img src="{{ asset('images/logos/trt.png') }}" alt="TRT" class="h-16 sm:h-20 w-auto object-contain">
+                    <img src="{{ asset('images/logos/polymate.png') }}" alt="Polymate IT Solutions" class="h-16 sm:h-20 w-auto object-contain">
                 </div>
 
                 {{-- Welcome heading --}}

@@ -198,6 +198,14 @@ new #[Layout('layouts.application')] class extends Component
             'select_placeholder' => ['th' => '--เลือก--', 'en' => '--Select--'],
             'expected_salary' => ['th' => 'เงินเดือนที่ต้องการ (บาท)', 'en' => 'Expected Salary (THB)'],
 
+            'title_th_label' => ['th' => 'คำนำหน้า (TH)', 'en' => 'Title (TH)'],
+            'first_name_th_label' => ['th' => 'ชื่อ (TH)', 'en' => 'Name (TH)'],
+            'last_name_th_label' => ['th' => 'นามสกุล (TH)', 'en' => 'Surname (TH)'],
+            'nickname_th_label' => ['th' => 'ชื่อเล่น (TH)', 'en' => 'Nickname (TH)'],
+            'first_name_th_ph' => ['th' => 'ชื่อ', 'en' => 'Name'],
+            'last_name_th_ph' => ['th' => 'นามสกุล', 'en' => 'Surname'],
+            'nickname_th_ph' => ['th' => 'ชื่อเล่น', 'en' => 'Nickname'],
+
             'date_of_birth' => ['th' => 'วันเดือนปีเกิด', 'en' => 'Date of Birth'],
             'age' => ['th' => 'อายุ', 'en' => 'Age'],
             'nationality' => ['th' => 'สัญชาติ', 'en' => 'Nationality'],
@@ -277,7 +285,7 @@ new #[Layout('layouts.application')] class extends Component
             'military_exempted' => ['th' => 'ได้รับการยกเว้น', 'en' => 'Exempted'],
             'military_completed' => ['th' => 'ผ่านการเกณฑ์ทหารแล้ว', 'en' => 'Completed'],
             'military_awaiting' => ['th' => 'รอเข้ารับการเกณฑ์ทหาร', 'en' => 'Awaiting conscription'],
-            'lese_majeste' => ['th' => 'มีประวัติหมิ่นพระบรมเดชานุภาพ', 'en' => 'Anti monarch record'],
+            'lese_majeste' => ['th' => 'มีประวัติหมิ่นพระมหากษัตริย์', 'en' => 'Anti monarch record'],
             'lese_majeste_detail' => ['th' => 'รายละเอียด', 'en' => 'Details'],
 
             'back_home' => ['th' => 'กลับหน้าแรก', 'en' => 'Back to Home'],
@@ -373,6 +381,11 @@ new #[Layout('layouts.application')] class extends Component
             'privacy_policy_consent' => ['th' => 'ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล สำหรับบุคลากรของบริษัท ข้าพเจ้ารับทราบและยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และตลอดระยะเวลาการเป็นพนักงานของบริษัท', 'en' => 'I have read the personal data protection policy for company personnel. I acknowledge and consent to the disclosure and verification of personal information at all times necessary for applying for a job and throughout the period of being an employee of the company.'],
             'signature_label' => ['th' => 'ลงชื่อผู้สมัครงาน (พิมพ์ชื่อ-นามสกุล)', 'en' => 'Applicant Signature (Type full name)'],
             'continue_to_review' => ['th' => 'ไปที่หน้าตรวจสอบข้อมูล', 'en' => 'Go to Review Page'],
+            'review_subtitle' => ['th' => 'กรุณาตรวจสอบข้อมูลทั้งหมดให้ถูกต้องก่อนกดยืนยันส่งใบสมัคร ท่านสามารถดาวน์โหลดตัวอย่าง PDF เพื่อตรวจสอบได้เช่นกัน', 'en' => 'Please review all information for accuracy before confirming your submission. You can also download a preview PDF to check.'],
+            'download_preview_pdf' => ['th' => 'ดาวน์โหลดตัวอย่าง PDF', 'en' => 'Download Preview PDF'],
+            'generating_file' => ['th' => 'กำลังสร้างไฟล์...', 'en' => 'Generating file...'],
+            'confirm_submit' => ['th' => 'ยืนยันและส่งใบสมัคร', 'en' => 'Confirm & Submit Application'],
+            'submitting' => ['th' => 'กำลังส่งใบสมัคร...', 'en' => 'Submitting...'],
             'data_accuracy_consent_attr' => ['th' => 'การรับรองความถูกต้องของข้อมูล', 'en' => 'Data accuracy certification'],
             'privacy_policy_consent_attr' => ['th' => 'การยินยอมตามนโยบายคุ้มครองข้อมูลส่วนบุคคล', 'en' => 'Privacy policy consent'],
             'signature_name_attr' => ['th' => 'ลงชื่อผู้สมัครงาน', 'en' => 'Applicant Signature'],
@@ -533,14 +546,14 @@ new #[Layout('layouts.application')] class extends Component
             'spouse_occupation' => ['nullable', 'string', 'max:255'],
             'children_count' => ['nullable', 'integer', 'min:0'],
 
-            'father_name' => ['nullable', 'string', 'max:255'],
-            'father_age' => ['nullable', 'integer', 'min:0', 'max:150'],
-            'father_occupation' => ['nullable', 'string', 'max:255'],
-            'father_alive' => ['nullable', 'boolean'],
-            'mother_name' => ['nullable', 'string', 'max:255'],
-            'mother_age' => ['nullable', 'integer', 'min:0', 'max:150'],
-            'mother_occupation' => ['nullable', 'string', 'max:255'],
-            'mother_alive' => ['nullable', 'boolean'],
+            'father_name' => ['required', 'string', 'max:255'],
+            'father_age' => ['required', 'integer', 'min:0', 'max:150'],
+            'father_occupation' => ['required', 'string', 'max:255'],
+            'father_alive' => ['required', 'boolean'],
+            'mother_name' => ['required', 'string', 'max:255'],
+            'mother_age' => ['required', 'integer', 'min:0', 'max:150'],
+            'mother_occupation' => ['required', 'string', 'max:255'],
+            'mother_alive' => ['required', 'boolean'],
             'siblings_count' => ['nullable', 'integer', 'min:0'],
             'birth_order' => ['nullable', 'integer', 'min:0'],
 
@@ -621,6 +634,14 @@ new #[Layout('layouts.application')] class extends Component
             'marital_status' => $this->tr('marital_status'),
             'marriage_registered' => $this->tr('marriage_registered'),
             'spouse_name' => $this->tr('spouse_name'),
+            'father_name' => $this->tr('father_name'),
+            'father_age' => $this->tr('father_age'),
+            'father_occupation' => $this->tr('father_occupation'),
+            'father_alive' => $this->tr('father_status'),
+            'mother_name' => $this->tr('mother_name'),
+            'mother_age' => $this->tr('mother_age'),
+            'mother_occupation' => $this->tr('mother_occupation'),
+            'mother_alive' => $this->tr('mother_status'),
             'military_status' => $this->tr('military_status'),
             'has_lese_majeste_record' => $this->tr('lese_majeste'),
             'lese_majeste_detail' => $this->tr('lese_majeste_detail'),
@@ -834,7 +855,7 @@ new #[Layout('layouts.application')] class extends Component
 
             'special_skills' => ['nullable', 'string', 'max:1000'],
             'guarantor_required_ok' => ['nullable', 'boolean'],
-            'shift_work_ok' => ['nullable', 'boolean'],
+            'shift_work_ok' => ['required', 'boolean'],
 
             'informal_debt_amount' => ['nullable', 'numeric', 'min:0'],
             'informal_debt_interest_rate' => ['nullable', 'numeric', 'min:0'],
@@ -859,6 +880,7 @@ new #[Layout('layouts.application')] class extends Component
                 'references.1.phone' => 'Phone Number (Person 1)',
                 'references.2.relationship' => 'Relationship (Person 2)',
                 'references.2.phone' => 'Phone Number (Person 2)',
+                'shift_work_ok' => $this->tr('shift_label'),
             ]
             : [
                 'references.1.name' => 'ชื่อ-นามสกุล บุคคลที่ 1',
@@ -867,6 +889,7 @@ new #[Layout('layouts.application')] class extends Component
                 'references.1.phone' => 'เบอร์โทร บุคคลที่ 1',
                 'references.2.relationship' => 'ความสัมพันธ์ บุคคลที่ 2',
                 'references.2.phone' => 'เบอร์โทร บุคคลที่ 2',
+                'shift_work_ok' => $this->tr('shift_label'),
             ];
 
         foreach ($this->documentTypes() as $type => $meta) {
@@ -1090,14 +1113,14 @@ new #[Layout('layouts.application')] class extends Component
                 {{-- ข้อมูลส่วนตัว --}}
                 <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.select label="คำนำหน้า (TH)" model="title_th" required :locale="$locale"
-                        :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว']" />
-                    <x-form.input label="ชื่อ (TH)" model="first_name_th" required placeholder="ชื่อ" />
-                    <x-form.input label="นามสกุล (TH)" model="last_name_th" required placeholder="นามสกุล" />
-                    <x-form.input label="ชื่อเล่น (TH)" model="nickname_th" required placeholder="ชื่อเล่น" />
+                    <x-form.select :label="$this->tr('title_th_label')" model="title_th" required :locale="$locale"
+                        :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว', '-' => '-']" />
+                    <x-form.input :label="$this->tr('first_name_th_label')" model="first_name_th" required :placeholder="$this->tr('first_name_th_ph')" />
+                    <x-form.input :label="$this->tr('last_name_th_label')" model="last_name_th" required :placeholder="$this->tr('last_name_th_ph')" />
+                    <x-form.input :label="$this->tr('nickname_th_label')" model="nickname_th" required :placeholder="$this->tr('nickname_th_ph')" />
 
                     <x-form.select label="Title (ENG)" model="title_en" required :locale="$locale"
-                        :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.']" />
+                        :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.', '-' => '-']" />
                     <x-form.input label="Name (ENG)" model="first_name_en" required placeholder="Name" />
                     <x-form.input label="Surname (ENG)" model="last_name_en" required placeholder="Surname" />
                     <x-form.input label="Nickname (ENG)" model="nickname_en" required placeholder="Nickname" />
@@ -1174,16 +1197,16 @@ new #[Layout('layouts.application')] class extends Component
                 {{-- บิดามารดาและพี่น้อง --}}
                 <x-form.section-title thai="ข้อมูลบิดามารดาและพี่น้อง" english="Parent & Sibling Information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.input :label="$this->tr('father_name')" model="father_name" :placeholder="$this->tr('father_name_ph')" />
-                    <x-form.input :label="$this->tr('father_age')" model="father_age" type="number" placeholder="0" />
-                    <x-form.input :label="$this->tr('father_occupation')" model="father_occupation" :placeholder="$this->tr('occupation_ph')" />
-                    <x-form.radio-group :label="$this->tr('father_status')" model="father_alive"
+                    <x-form.input :label="$this->tr('father_name')" model="father_name" required :placeholder="$this->tr('father_name_ph')" />
+                    <x-form.input :label="$this->tr('father_age')" model="father_age" type="number" required placeholder="0" />
+                    <x-form.input :label="$this->tr('father_occupation')" model="father_occupation" required :placeholder="$this->tr('occupation_ph')" />
+                    <x-form.radio-group :label="$this->tr('father_status')" model="father_alive" required
                         :options="['1' => $this->tr('alive'), '0' => $this->tr('deceased')]" />
 
-                    <x-form.input :label="$this->tr('mother_name')" model="mother_name" :placeholder="$this->tr('mother_name_ph')" />
-                    <x-form.input :label="$this->tr('mother_age')" model="mother_age" type="number" placeholder="0" />
-                    <x-form.input :label="$this->tr('mother_occupation')" model="mother_occupation" :placeholder="$this->tr('occupation_ph')" />
-                    <x-form.radio-group :label="$this->tr('mother_status')" model="mother_alive"
+                    <x-form.input :label="$this->tr('mother_name')" model="mother_name" required :placeholder="$this->tr('mother_name_ph')" />
+                    <x-form.input :label="$this->tr('mother_age')" model="mother_age" type="number" required placeholder="0" />
+                    <x-form.input :label="$this->tr('mother_occupation')" model="mother_occupation" required :placeholder="$this->tr('occupation_ph')" />
+                    <x-form.radio-group :label="$this->tr('mother_status')" model="mother_alive" required
                         :options="['1' => $this->tr('alive'), '0' => $this->tr('deceased')]" />
 
                     <x-form.input :label="$this->tr('siblings_count')" model="siblings_count" type="number" placeholder="0" />
@@ -1191,7 +1214,7 @@ new #[Layout('layouts.application')] class extends Component
                 </div>
 
                 {{-- ทหาร & ประวัติ --}}
-                <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติ" english="Military Service" :locale="$locale" />
+                <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติหมิ่นพระมหากษัตริย์" english="Military Service" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <x-form.radio-group :label="$this->tr('military_status')" model="military_status" required
                         :options="['exempted' => $this->tr('military_exempted'), 'completed' => $this->tr('military_completed'), 'awaiting_conscription' => $this->tr('military_awaiting')]" />
@@ -1378,7 +1401,7 @@ new #[Layout('layouts.application')] class extends Component
                 </div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <x-form.radio-group :label="$this->tr('guarantor_label')" model="guarantor_required_ok" :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
-                    <x-form.radio-group :label="$this->tr('shift_label')" model="shift_work_ok" :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
+                    <x-form.radio-group :label="$this->tr('shift_label')" model="shift_work_ok" required :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
                 </div>
 
                 <x-form.section-title thai="ข้อมูลด้านการเงิน" english="Financial Information" :locale="$locale" />
@@ -1393,9 +1416,7 @@ new #[Layout('layouts.application')] class extends Component
                 <x-form.textarea :label="$this->tr('illness_label')" model="illness_or_accident_history" :placeholder="$this->tr('illness_ph')" />
 
                 <x-form.section-title thai="ข้อมูลอื่นๆ" english="Additional information" :locale="$locale" />
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    <x-form.input :label="$this->tr('known_person')" model="known_person_in_company" :placeholder="$this->tr('full_name_ph')" />
-                    <x-form.input :label="$this->tr('ref_relationship')" model="known_person_relation" :placeholder="$this->tr('ref_relationship')" />
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <x-form.input :label="$this->tr('start_date_label')" model="available_start_date" type="date" />
                 </div>
                 <div class="mt-5">
@@ -1408,6 +1429,7 @@ new #[Layout('layouts.application')] class extends Component
                         @endif
                         @if (in_array('เพื่อน/ญาติแนะนำ', $source_channels))
                             <x-form.input :label="$this->tr('referred_friend_label')" model="referred_friend_name" :placeholder="$this->tr('full_name_ph')" />
+                            <x-form.input :label="$this->tr('ref_relationship')" model="known_person_relation" :placeholder="$this->tr('ref_relationship')" />
                         @endif
                     </div>
                 @endif
@@ -1505,8 +1527,8 @@ new #[Layout('layouts.application')] class extends Component
             @endphp
 
             <div class="mt-4 rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
-                <h1 class="text-xl font-semibold text-stone-800">ตรวจสอบข้อมูล <span class="font-normal text-stone-400">/ Review before submitting</span></h1>
-                <p class="mt-1 text-sm text-stone-500">กรุณาตรวจสอบข้อมูลทั้งหมดให้ถูกต้องก่อนกดยืนยันส่งใบสมัคร ท่านสามารถดาวน์โหลดตัวอย่าง PDF เพื่อตรวจสอบได้เช่นกัน</p>
+                <h1 class="text-xl font-semibold text-stone-800">{{ $this->tr('step_review') }}</h1>
+                <p class="mt-1 text-sm text-stone-500">{{ $this->tr('review_subtitle') }}</p>
 
                 <div class="mt-4">
                     <button
@@ -1518,12 +1540,12 @@ new #[Layout('layouts.application')] class extends Component
                     >
                         <svg wire:loading.remove wire:target="downloadPdf" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a.75.75 0 0 1 .75.75v7.19l2.72-2.72a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 1 1 1.06-1.06l2.72 2.72V3.75A.75.75 0 0 1 10 3ZM4 15a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H4Z" clip-rule="evenodd" /></svg>
                         <svg wire:loading wire:target="downloadPdf" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"></path></svg>
-                        <span wire:loading.remove wire:target="downloadPdf">ดาวน์โหลดตัวอย่าง PDF</span>
-                        <span wire:loading wire:target="downloadPdf">กำลังสร้างไฟล์...</span>
+                        <span wire:loading.remove wire:target="downloadPdf">{{ $this->tr('download_preview_pdf') }}</span>
+                        <span wire:loading wire:target="downloadPdf">{{ $this->tr('generating_file') }}</span>
                     </button>
                 </div>
 
-                @include('partials.applicant-review', ['a' => $a])
+                @include('partials.applicant-review', ['a' => $a, 'locale' => $locale])
 
                 <div class="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-stone-100 pt-6 sm:flex-row">
                     <button
@@ -1531,7 +1553,7 @@ new #[Layout('layouts.application')] class extends Component
                         wire:click="$set('step', 'schedule')"
                         class="text-sm font-medium text-stone-500 hover:text-stone-700"
                     >
-                        &larr; ย้อนกลับไปแก้ไข
+                        &larr; {{ $this->tr('back_step') }}
                     </button>
                     <button
                         type="button"
@@ -1540,8 +1562,8 @@ new #[Layout('layouts.application')] class extends Component
                         wire:target="confirmSubmit"
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                     >
-                        <span wire:loading.remove wire:target="confirmSubmit">ยืนยันและส่งใบสมัคร</span>
-                        <span wire:loading wire:target="confirmSubmit">กำลังส่งใบสมัคร...</span>
+                        <span wire:loading.remove wire:target="confirmSubmit">{{ $this->tr('confirm_submit') }}</span>
+                        <span wire:loading wire:target="confirmSubmit">{{ $this->tr('submitting') }}</span>
                     </button>
                 </div>
             </div>

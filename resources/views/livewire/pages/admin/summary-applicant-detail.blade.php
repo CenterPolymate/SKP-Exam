@@ -564,7 +564,7 @@ new #[Layout('layouts.admin')] class extends Component
             'marriage_registered' => 'การจดทะเบียนสมรส',
             'spouse_name' => 'ชื่อคู่สมรส',
             'military_status' => 'สถานะภาพทางการทหาร',
-            'has_lese_majeste_record' => 'ประวัติหมิ่นพระบรมเดชานุภาพ',
+            'has_lese_majeste_record' => 'ประวัติหมิ่นพระมหากษัตริย์',
             'lese_majeste_detail' => 'รายละเอียด',
         ];
 
@@ -826,13 +826,13 @@ new #[Layout('layouts.admin')] class extends Component
             <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" />
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <x-form.select label="คำนำหน้า (TH)" model="title_th" required
-                    :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว']" />
+                    :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว', '-' => '-']" />
                 <x-form.input label="ชื่อ (TH)" model="first_name_th" required placeholder="ชื่อ" />
                 <x-form.input label="นามสกุล (TH)" model="last_name_th" required placeholder="นามสกุล" />
                 <x-form.input label="ชื่อเล่น (TH)" model="nickname_th" required placeholder="ชื่อเล่น" />
 
                 <x-form.select label="Title (ENG)" model="title_en" required
-                    :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.']" />
+                    :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.', '-' => '-']" />
                 <x-form.input label="Name (ENG)" model="first_name_en" required placeholder="Name" />
                 <x-form.input label="Surname (ENG)" model="last_name_en" required placeholder="Surname" />
                 <x-form.input label="Nickname (ENG)" model="nickname_en" required placeholder="Nickname" />
@@ -926,11 +926,11 @@ new #[Layout('layouts.admin')] class extends Component
             </div>
 
             {{-- ทหาร & ประวัติ --}}
-            <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติ" english="Military Service" />
+            <x-form.section-title thai="สถานะภาพทางการทหาร & ประวัติหมิ่นพระมหากษัตริย์" english="Military Service" />
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <x-form.radio-group label="สถานะภาพทางการทหาร" model="military_status" required
                     :options="['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร']" />
-                <x-form.radio-group label="มีประวัติหมิ่นพระบรมเดชานุภาพ" model="has_lese_majeste_record" required live
+                <x-form.radio-group label="มีประวัติหมิ่นพระมหากษัตริย์" model="has_lese_majeste_record" required live
                     :options="['1' => 'มี', '0' => 'ไม่มี']" />
             </div>
             @if ($has_lese_majeste_record === '1')
