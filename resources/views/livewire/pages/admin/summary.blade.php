@@ -72,8 +72,7 @@ new #[Layout('layouts.admin')] class extends Component
             ->pluck('yr');
     }
 
-    #[Computed]
-    public function applicants()
+    protected function filteredApplicantsQuery()
     {
         $digits = preg_replace('/\D/', '', $this->search);
 
@@ -97,8 +96,214 @@ new #[Layout('layouts.admin')] class extends Component
             ->when($this->degreeLevel !== '', fn ($query) => $query->whereHas('education', fn ($q) => $q->where('degree_level', $this->degreeLevel)))
             ->when($this->minGpa !== '', fn ($query) => $query->whereHas('education', fn ($q) => $q->where('gpa', '>=', (float) $this->minGpa)))
             ->when($this->yearApplied !== '', fn ($query) => $query->whereYear('created_at', $this->yearApplied))
-            ->orderByDesc('created_at')
-            ->paginate($this->perPage);
+            ->orderByDesc('created_at');
+    }
+
+    #[Computed]
+    public function applicants()
+    {
+        return $this->filteredApplicantsQuery()->paginate($this->perPage);
+    }
+
+    // คอลัมน์ export ครอบคลุมทุกช่องที่ผู้สมัครกรอกในฟอร์มสมัคร (ไม่ใช่แค่คอลัมน์ที่โชว์ในตารางสรุป)
+    // คืนค่าเป็น [label => closure(Applicant $a): mixed] เพื่อให้ label กับค่าผูกคู่กันเสมอ ไม่หลุด sync กัน
+    protected function exportColumns(): array
+    {
+        $yesNo = fn ($v) => is_null($v) ? '-' : ($v ? 'ใช่' : 'ไม่ใช่');
+        $aliveLabel = fn ($v) => is_null($v) ? '-' : ($v ? 'มีชีวิตอยู่' : 'เสียชีวิตแล้ว');
+        $fmtDate = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '-';
+        $tier = fn ($v) => is_null($v) ? '-' : ($v >= 4 ? 'ดีมาก' : ($v >= 2 ? 'ดี' : 'พอใช้'));
+
+        $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'อื่นๆ'];
+        $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];
+        $maritalStatusLabels = ['single' => 'โสด', 'married' => 'แต่งงาน', 'divorced' => 'หย่า', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่'];
+        $militaryStatusLabels = ['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร'];
+        $degreeLevelLabels = ['junior_high' => 'มัธยมศึกษาตอนต้น', 'senior_high_vocational_cert' => 'มัธยมศึกษาตอนปลาย/ปวช.', 'diploma_high_vocational' => 'อนุปริญญา/ปวส.', 'vocational' => 'วิชาชีพ', 'bachelor' => 'ปริญญาตรี', 'master' => 'ปริญญาโท', 'other' => 'อื่นๆ'];
+        $languageLabels = ['thai' => 'ไทย', 'english' => 'อังกฤษ', 'chinese' => 'จีน', 'other' => 'อื่นๆ'];
+        $documentTypeLabels = [
+            'photo' => 'รูปถ่ายหน้าตรง ขนาด 1 นิ้ว', 'education_certificate' => 'ใบรับรองการศึกษา',
+            'house_registration' => 'สำเนาทะเบียนบ้าน', 'id_card_copy' => 'สำเนาบัตรประชาชน',
+            'military_certificate' => 'ใบผ่านทหาร', 'work_certificate_copy' => 'สำเนาใบผ่านงาน',
+            'driving_license' => 'สำเนาใบขับขี่', 'other' => 'เอกสารอื่นๆ',
+        ];
+
+        return [
+            // ข้อมูลใบสมัคร
+            'วันที่สมัคร' => fn ($a) => $this->thaiDate($a->created_at),
+            'รหัสผู้สมัคร' => fn ($a) => 'APP-'.str_pad($a->id, 6, '0', STR_PAD_LEFT),
+            'สถานะ' => fn ($a) => $this->statusMeta($a->status)['label'],
+            'ตำแหน่งที่สมัคร' => fn ($a) => $a->position->title ?? '-',
+            'เงินเดือนที่ต้องการ' => fn ($a) => number_format((float) $a->expected_salary, 2),
+            'ช่องทางที่ทราบข่าว' => fn ($a) => implode(', ', (array) $a->source_channels) ?: '-',
+            'ระบุช่องทางอื่นๆ' => fn ($a) => $a->source_channel_other ?: '-',
+            'ชื่อเพื่อน/ญาติที่แนะนำ' => fn ($a) => $a->referred_friend_name ?: '-',
+
+            // ชื่อ-นามสกุล
+            'คำนำหน้า (TH)' => fn ($a) => $a->title_th,
+            'ชื่อ (TH)' => fn ($a) => $a->first_name_th,
+            'นามสกุล (TH)' => fn ($a) => $a->last_name_th,
+            'ชื่อเล่น (TH)' => fn ($a) => $a->nickname_th,
+            'Title (EN)' => fn ($a) => $a->title_en,
+            'Name (EN)' => fn ($a) => $a->first_name_en,
+            'Surname (EN)' => fn ($a) => $a->last_name_en,
+            'Nickname (EN)' => fn ($a) => $a->nickname_en,
+
+            // ข้อมูลส่วนตัว
+            'วันเกิด' => fn ($a) => $fmtDate($a->date_of_birth),
+            'อายุ' => fn ($a) => $a->date_of_birth ? \Illuminate\Support\Carbon::parse($a->date_of_birth)->age : '-',
+            'สัญชาติ' => fn ($a) => $a->nationality,
+            'เชื้อชาติ' => fn ($a) => $a->ethnicity,
+            'ศาสนา' => fn ($a) => $a->religion,
+            'เพศ' => fn ($a) => $genderLabels[$a->gender] ?? '-',
+            'ส่วนสูง (ซม.)' => fn ($a) => $a->height_cm,
+            'น้ำหนัก (กก.)' => fn ($a) => $a->weight_kg,
+            'มีโรคประจำตัว' => fn ($a) => $yesNo($a->has_congenital_disease),
+            'รายละเอียดโรคประจำตัว' => fn ($a) => $a->congenital_disease_detail ?: '-',
+            'มีประวัติอาชญากรรม' => fn ($a) => $yesNo($a->has_criminal_record),
+            'รายละเอียดประวัติอาชญากรรม' => fn ($a) => $a->criminal_record_detail ?: '-',
+            'มีประวัติหมิ่นพระมหากษัตริย์' => fn ($a) => $yesNo($a->has_lese_majeste_record),
+            'รายละเอียด (หมิ่นพระมหากษัตริย์)' => fn ($a) => $a->lese_majeste_detail ?: '-',
+
+            // ที่อยู่
+            'ประเทศ' => fn ($a) => $a->country,
+            'ภูมิลำเนา' => fn ($a) => $a->hometown,
+            'ที่อยู่ปัจจุบัน' => fn ($a) => $a->current_address,
+
+            // ติดต่อ
+            'เบอร์โทรศัพท์' => fn ($a) => $a->phone,
+            'Email' => fn ($a) => $a->email,
+            'Line ID' => fn ($a) => $a->line_id ?: '-',
+            'Facebook' => fn ($a) => $a->facebook ?: '-',
+            'Instagram' => fn ($a) => $a->instagram ?: '-',
+            'Twitter' => fn ($a) => $a->twitter ?: '-',
+
+            // บัตรประชาชน
+            'เลขบัตรประชาชน' => fn ($a) => $a->national_id_number,
+            'เลขหลังบัตรประชาชน' => fn ($a) => $a->national_id_back_number ?: '-',
+            'วันออกบัตร' => fn ($a) => $fmtDate($a->id_issue_date),
+            'วันหมดอายุบัตร' => fn ($a) => $fmtDate($a->id_expiry_date),
+
+            // ครอบครัว
+            'สถานะความเป็นอยู่' => fn ($a) => $livingStatusLabels[$a->living_status] ?? '-',
+            'สถานะครอบครัว' => fn ($a) => $maritalStatusLabels[$a->marital_status] ?? '-',
+            'จดทะเบียนสมรส' => fn ($a) => $yesNo($a->marriage_registered),
+            'ชื่อคู่สมรส' => fn ($a) => $a->spouse_name ?: '-',
+            'อาชีพคู่สมรส' => fn ($a) => $a->spouse_occupation ?: '-',
+            'จำนวนบุตร' => fn ($a) => $a->children_count ?? '-',
+
+            // บิดามารดา
+            'ชื่อบิดา' => fn ($a) => $a->father_name ?: '-',
+            'อายุบิดา' => fn ($a) => $a->father_age ?? '-',
+            'อาชีพบิดา' => fn ($a) => $a->father_occupation ?: '-',
+            'สถานะบิดา' => fn ($a) => $aliveLabel($a->father_alive),
+            'ชื่อมารดา' => fn ($a) => $a->mother_name ?: '-',
+            'อายุมารดา' => fn ($a) => $a->mother_age ?? '-',
+            'อาชีพมารดา' => fn ($a) => $a->mother_occupation ?: '-',
+            'สถานะมารดา' => fn ($a) => $aliveLabel($a->mother_alive),
+            'จำนวนพี่น้อง' => fn ($a) => $a->siblings_count ?? '-',
+            'เป็นบุตรคนที่' => fn ($a) => $a->birth_order ?? '-',
+
+            // ทหาร
+            'สถานะภาพทางการทหาร' => fn ($a) => $militaryStatusLabels[$a->military_status] ?? '-',
+
+            // การศึกษา (รวมทุกระดับที่กรอกไว้)
+            'ประวัติการศึกษา' => fn ($a) => $a->education->map(fn ($e) => trim(
+                ($degreeLevelLabels[$e->degree_level] ?? $e->degree_level).' - '.$e->institution_name
+                .($e->major ? ' ('.$e->major.')' : '').($e->gpa ? ' GPA '.$e->gpa : '')
+                .' '.$e->start_year.'-'.$e->end_year
+            ))->implode(' | ') ?: '-',
+
+            // ภาษา
+            'ความสามารถด้านภาษา' => fn ($a) => $a->languages->map(fn ($l) => (
+                ($l->language === 'other' ? $l->custom_language_name : ($languageLabels[$l->language] ?? $l->language))
+                .' (พูด '.$tier($l->speaking_level).', ฟัง '.$tier($l->understanding_level)
+                .', อ่าน '.$tier($l->reading_level).', เขียน '.$tier($l->writing_level).')'
+            ))->implode(' | ') ?: '-',
+            'ใบรับรองด้านภาษา' => fn ($a) => $a->language_certificate_note ?: '-',
+
+            // ประวัติการทำงาน
+            'ประวัติการทำงาน' => fn ($a) => $a->workHistories->map(fn ($w) => trim(
+                $w->company_name.' - '.$w->position.' ('.$w->start_year.'-'.$w->end_year.')'
+                .($w->last_salary ? ' เงินเดือนล่าสุด '.number_format((float) $w->last_salary, 2).' บาท' : '')
+            ))->implode(' | ') ?: '-',
+
+            // บุคคลอ้างอิง
+            'บุคคลอ้างอิง 1' => function ($a) {
+                $ref = $a->references->firstWhere('order_no', 1);
+
+                return $ref ? "{$ref->name} ({$ref->relationship}) โทร {$ref->phone}" : '-';
+            },
+            'บุคคลอ้างอิง 2' => function ($a) {
+                $ref = $a->references->firstWhere('order_no', 2);
+
+                return $ref ? "{$ref->name} ({$ref->relationship}) โทร {$ref->phone}" : '-';
+            },
+
+            // อื่นๆ
+            'ความรู้ความสามารถพิเศษ' => fn ($a) => $a->special_skills ?: '-',
+            'สามารถหาผู้ค้ำประกันได้' => fn ($a) => $yesNo($a->guarantor_required_ok),
+            'ทำงานเป็นกะหมุนเวียนได้' => fn ($a) => $yesNo($a->shift_work_ok),
+            'หนี้นอกระบบ (บาท/เดือน)' => fn ($a) => $a->informal_debt_amount ?? '-',
+            'ดอกเบี้ย (ร้อยละ/เดือน)' => fn ($a) => $a->informal_debt_interest_rate ?? '-',
+            'วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)' => fn ($a) => $a->credit_card_debt_amount ?? '-',
+            'ยอดค้างชำระ (บาท)' => fn ($a) => $a->total_outstanding_balance ?? '-',
+            'ประวัติเจ็บป่วย/อุบัติเหตุ (3 ปีย้อนหลัง)' => fn ($a) => $a->illness_or_accident_history ?: '-',
+            'บุคคลในบริษัทที่รู้จัก' => fn ($a) => $a->known_person_in_company ?: '-',
+            'ความสัมพันธ์ (บุคคลที่รู้จัก)' => fn ($a) => $a->known_person_relation ?: '-',
+            'วันที่พร้อมเริ่มงาน' => fn ($a) => $fmtDate($a->available_start_date),
+
+            // เอกสารแนบ
+            'เอกสารที่แนบ' => fn ($a) => $a->documents->map(fn ($d) => $documentTypeLabels[$d->document_type] ?? $d->document_type)->implode(', ') ?: '-',
+
+            // ยินยอม/ลงชื่อ
+            'ยินยอมรับรองความถูกต้องของข้อมูล' => fn ($a) => $yesNo($a->data_accuracy_consent),
+            'ยินยอมตามนโยบายความเป็นส่วนตัว' => fn ($a) => $yesNo($a->privacy_policy_consent),
+            'ลงชื่อผู้สมัครงาน' => fn ($a) => $a->signature_name ?: '-',
+            'วันที่ลงชื่อ' => fn ($a) => $fmtDate($a->signed_at),
+
+            // การตรวจสอบของ HR
+            'ตรวจสอบ Blacklist (HR)' => fn ($a) => $yesNo($a->hr_blacklist_checked),
+            'ตรวจสอบประวัติอาชญากรรม (HR)' => fn ($a) => $yesNo($a->hr_criminal_checked),
+            'ตรวจสอบ Social Media (HR)' => fn ($a) => $yesNo($a->hr_social_checked),
+            'หมายเหตุ HR' => fn ($a) => $a->hr_verification_note ?: '-',
+            'ผู้ตรวจสอบ' => fn ($a) => $a->reviewer->name ?? '-',
+            'วันที่ตรวจสอบ' => fn ($a) => $a->reviewed_at ? $a->reviewed_at->format('d/m/Y H:i') : '-',
+        ];
+    }
+
+    public function exportExcel()
+    {
+        $applicants = $this->filteredApplicantsQuery()
+            ->with(['languages', 'workHistories', 'references', 'documents', 'reviewer'])
+            ->get();
+
+        $columns = $this->exportColumns();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->fromArray(array_keys($columns), null, 'A1');
+        $sheet->getStyle('A1:'.$sheet->getHighestColumn().'1')->getFont()->setBold(true);
+        $sheet->freezePane('A2');
+
+        $row = 2;
+        foreach ($applicants as $applicant) {
+            $sheet->fromArray(array_map(fn ($resolve) => $resolve($applicant), array_values($columns)), null, "A{$row}");
+            $row++;
+        }
+
+        foreach (range(1, count($columns)) as $colIndex) {
+            $sheet->getColumnDimensionByColumn($colIndex)->setAutoSize(true);
+        }
+
+        $filename = 'ข้อมูลผู้สมัคร-'.now()->format('Y-m-d').'.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     #[Computed]
@@ -225,10 +430,17 @@ new #[Layout('layouts.admin')] class extends Component
                 <h1 class="text-2xl font-bold text-stone-900">สรุปผล</h1>
                 <p class="mt-1 text-sm text-stone-500">ภาพรวมผลการคัดเลือกผู้สมัคร</p>
             </div>
-            <span title="ยังไม่เปิดใช้งาน" class="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-300">
+            <button
+                type="button"
+                wire:click="exportExcel"
+                wire:loading.attr="disabled"
+                wire:target="exportExcel"
+                class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60"
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                ส่งออก PDF
-            </span>
+                <span wire:loading.remove wire:target="exportExcel">ส่งออก Excel</span>
+                <span wire:loading wire:target="exportExcel">กำลังสร้างไฟล์...</span>
+            </button>
         </div>
 
         <div class="mt-5 flex gap-1 border-b border-stone-200">
