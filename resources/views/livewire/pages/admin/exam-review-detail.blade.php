@@ -116,6 +116,11 @@ new #[Layout('layouts.admin')] class extends Component
                                 @else
                                     <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700">@ ความถนัด</span>
                                 @endif
+                                @if ($attempt->suspicious_activity_count > 0)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 font-medium text-red-600" title="พบสัญญาณน่าสงสัย {{ $attempt->suspicious_activity_count }} ครั้งระหว่างทำข้อสอบ">
+                                        ⚠️ {{ $attempt->suspicious_activity_count }} ครั้ง
+                                    </span>
+                                @endif
                             </div>
                         </div>
 

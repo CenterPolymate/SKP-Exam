@@ -20,7 +20,7 @@ new #[Layout('layouts.exam-login')] class extends Component
 
         Session::regenerate();
 
-        $this->redirect(route('exam.dashboard', absolute: false), navigate: true);
+        $this->redirect(route('exam.welcome', absolute: false), navigate: true);
     }
 }; ?>
 

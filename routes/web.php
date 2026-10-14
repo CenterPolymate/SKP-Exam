@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExamAttemptController;
 use App\Http\Controllers\SecureFileController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -73,6 +74,10 @@ Volt::route('exam/login', 'pages.exam.login')
     ->middleware('guest:exam_applicant')
     ->name('exam.login');
 
+Volt::route('exam/welcome', 'pages.exam.welcome')
+    ->middleware(['auth:exam_applicant', 'exam.not_expired'])
+    ->name('exam.welcome');
+
 Volt::route('exam/dashboard', 'pages.exam.dashboard')
     ->middleware(['auth:exam_applicant', 'exam.not_expired'])
     ->name('exam.dashboard');
@@ -84,5 +89,9 @@ Volt::route('exam/attempts/{attempt}/start', 'pages.exam.attempt-start')
 Volt::route('exam/attempts/{attempt}/take', 'pages.exam.attempt-take')
     ->middleware(['auth:exam_applicant', 'exam.not_expired'])
     ->name('exam.attempts.take');
+
+Route::post('exam/attempts/{attempt}/suspicious-activity', [ExamAttemptController::class, 'logSuspiciousActivity'])
+    ->middleware(['auth:exam_applicant', 'exam.not_expired'])
+    ->name('exam.attempts.suspicious-activity');
 
 require __DIR__.'/auth.php';

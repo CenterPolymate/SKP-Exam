@@ -86,6 +86,26 @@ new #[Layout('layouts.admin')] class extends Component
             </div>
         </div>
 
+        @if ($attempt->suspicious_activity_count > 0)
+            @php
+                $activityLabels = ['tab_switch' => 'สลับแท็บ/หน้าต่าง', 'fullscreen_exit' => 'ออกจากโหมดเต็มจอ'];
+            @endphp
+            <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+                <p class="flex items-center gap-2 text-sm font-semibold text-red-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    พบสัญญาณน่าสงสัยระหว่างทำข้อสอบ {{ $attempt->suspicious_activity_count }} ครั้ง
+                </p>
+                <p class="mt-1 text-xs text-red-600">
+                    เป็นเพียงสัญญาณให้พิจารณาประกอบ ไม่ได้หมายความว่าผู้สมัครทุจริตเสมอไป (อาจเกิดจากการแจ้งเตือน เครื่องค้าง ฯลฯ)
+                </p>
+                <ul class="mt-2 space-y-1 text-xs text-red-700">
+                    @foreach (($attempt->suspicious_activity_log ?? []) as $event)
+                        <li>• {{ $activityLabels[$event['type']] ?? $event['type'] }} — {{ \Illuminate\Support\Carbon::parse($event['at'])->format('d/m/Y H:i:s') }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="mt-4 space-y-4">
             @foreach ($attempt->exam->questions as $index => $q)
                 @php $answer = $attempt->answers->firstWhere('exam_question_id', $q->id); @endphp

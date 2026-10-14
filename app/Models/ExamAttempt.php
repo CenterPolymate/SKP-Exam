@@ -15,6 +15,8 @@ class ExamAttempt extends Model
         'submitted_at',
         'status',
         'score',
+        'suspicious_activity_count',
+        'suspicious_activity_log',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class ExamAttempt extends Model
             'started_at' => 'datetime',
             'submitted_at' => 'datetime',
             'score' => 'decimal:2',
+            'suspicious_activity_log' => 'array',
         ];
     }
 

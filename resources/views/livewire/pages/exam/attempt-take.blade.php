@@ -212,7 +212,24 @@ new #[Layout('layouts.exam-app')] class extends Component
 
 <div class="min-h-screen select-none bg-[#FAF3E7] pb-16" x-data="{
         remaining: {{ max(0, $deadlineTimestamp - now()->timestamp) }},
-        confirmingSubmit: false,
+        busy: false,
+        call(method, ...args) {
+            if (this.busy) return;
+            this.busy = true;
+            $wire.call(method, ...args).finally(() => { this.busy = false; });
+        },
+        openSubmitModal() {
+            // ตั้งค่าแสดงผลตรงๆ แทนการผูก x-show กับตัวแปร เพราะ modal อยู่นอกส่วนที่ Livewire
+            // morph บ่อยๆ (เปลี่ยนข้อ/บันทึกคำตอบ) แล้วพบว่า x-show บางครั้งไม่ sync กับ state หลัง morph
+            document.getElementById('submit-confirm-modal').style.display = 'flex';
+        },
+        closeSubmitModal() {
+            document.getElementById('submit-confirm-modal').style.display = 'none';
+        },
+        confirmSubmit() {
+            this.closeSubmitModal();
+            this.call('submit');
+        },
         tick() {
             if (this.remaining <= 0) { $wire.autoSubmit(); return; }
             this.remaining--;
@@ -240,9 +257,23 @@ new #[Layout('layouts.exam-app')] class extends Component
             if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i', 'j', 'c'].includes(key))) {
                 e.preventDefault();
             }
+        },
+        reportSuspicious(type) {
+            fetch('{{ route('exam.attempts.suspicious-activity', $attempt) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').content,
+                },
+                body: JSON.stringify({ type }),
+                keepalive: true,
+            }).catch(() => {});
         }
     }"
-    x-init="setInterval(() => tick(), 1000)"
+    x-init="
+        setInterval(() => tick(), 1000);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) reportSuspicious('tab_switch'); });
+    "
     @copy="blockCopyLikeEvent($event)"
     @cut="blockCopyLikeEvent($event)"
     @contextmenu="blockCopyLikeEvent($event)"
@@ -278,7 +309,9 @@ new #[Layout('layouts.exam-app')] class extends Component
                         $qMarked = $answers[$q->id]['marked_for_review'] ?? false;
                     @endphp
                     <button
-                        wire:click="goTo({{ $index }})"
+                        @click="call('goTo', {{ $index }})"
+                        wire:loading.class="opacity-60"
+                        wire:loading.attr="aria-disabled"
                         type="button"
                         class="relative h-9 w-9 rounded-lg text-sm font-semibold {{ $index === $currentIndex ? 'bg-[#BA772A] text-white' : ($qAnswered ? 'bg-amber-50 text-amber-700' : 'bg-stone-100 text-stone-500') }}"
                     >
@@ -306,7 +339,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                         } }}
                     </span>
                 </div>
-                <button type="button" wire:click="toggleMark({{ $q->id }})"
+                <button type="button" @click="call('toggleMark', {{ $q->id }})" wire:loading.class="opacity-60"
                         class="rounded-lg border px-3 py-1.5 text-xs font-medium {{ ($answers[$q->id]['marked_for_review'] ?? false) ? 'border-red-300 bg-red-50 text-red-600' : 'border-stone-200 text-stone-500 hover:bg-stone-50' }}">
                     {{ ($answers[$q->id]['marked_for_review'] ?? false) ? 'ยกเลิกทำเครื่องหมาย' : 'ทำเครื่องหมาย' }}
                 </button>
@@ -324,7 +357,7 @@ new #[Layout('layouts.exam-app')] class extends Component
             <div class="mt-5 space-y-2" wire:key="question-body-{{ $q->id }}">
                 @if ($q->question_type === 'single_choice')
                     @foreach ($q->choices as $choice)
-                        <button type="button" wire:click="selectSingle({{ $q->id }}, {{ $choice->id }})"
+                        <button type="button" @click="call('selectSingle', {{ $q->id }}, {{ $choice->id }})" wire:loading.class="opacity-60"
                                 class="flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm {{ ($answers[$q->id]['selected_choice_id'] ?? null) == $choice->id ? 'border-[#BA772A] bg-amber-50 text-stone-900' : 'border-stone-200 text-stone-700 hover:bg-stone-50' }}">
                             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 {{ ($answers[$q->id]['selected_choice_id'] ?? null) == $choice->id ? 'border-[#BA772A]' : 'border-stone-300' }}">
                                 @if (($answers[$q->id]['selected_choice_id'] ?? null) == $choice->id)
@@ -337,7 +370,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                 @elseif ($q->question_type === 'multi_choice')
                     @foreach ($q->choices as $choice)
                         @php $checked = collect($answers[$q->id]['selected_choice_ids'] ?? [])->contains($choice->id); @endphp
-                        <button type="button" wire:click="toggleMulti({{ $q->id }}, {{ $choice->id }})"
+                        <button type="button" @click="call('toggleMulti', {{ $q->id }}, {{ $choice->id }})" wire:loading.class="opacity-60"
                                 class="flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm {{ $checked ? 'border-[#BA772A] bg-amber-50 text-stone-900' : 'border-stone-200 text-stone-700 hover:bg-stone-50' }}">
                             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 {{ $checked ? 'border-[#BA772A] bg-[#BA772A]' : 'border-stone-300' }}">
                                 @if ($checked)
@@ -370,17 +403,18 @@ new #[Layout('layouts.exam-app')] class extends Component
             </div>
 
             <div class="mt-6 flex gap-3 border-t border-stone-100 pt-5">
-                <button type="button" wire:click="previous" @disabled($currentIndex === 0)
+                <button type="button" @click="call('previous')" @disabled($currentIndex === 0) wire:loading.class="opacity-60"
                         class="rounded-lg border border-stone-200 px-4 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50 disabled:opacity-40">
                     &larr; กลับ
                 </button>
 
                 @if ($currentIndex + 1 < $attempt->exam->questions->count())
-                    <button type="button" wire:click="next" class="ml-auto rounded-lg bg-[#BA772A] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#a6661f]">
+                    <button type="button" @click="call('next')" wire:loading.class="opacity-60"
+                            class="ml-auto rounded-lg bg-[#BA772A] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#a6661f]">
                         ถัดไป &rarr;
                     </button>
                 @else
-                    <button type="button" @click="confirmingSubmit = true"
+                    <button type="button" @click="openSubmitModal()"
                             class="ml-auto rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
                         ส่งคำตอบ
                     </button>
@@ -389,28 +423,30 @@ new #[Layout('layouts.exam-app')] class extends Component
         </div>
     </main>
 
-    {{-- Confirm submit modal --}}
+    {{-- Confirm submit modal: visibility is toggled via plain style.display (not x-show),
+         see openSubmitModal()/closeSubmitModal() above. --}}
     <div
-        x-show="confirmingSubmit"
-        x-cloak
-        x-transition.opacity
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+        id="submit-confirm-modal"
+        style="display: none;"
+        class="fixed inset-0 z-50 items-center justify-center bg-black/40 px-4"
+        @click.self="closeSubmitModal()"
     >
-        <div
-            @click.outside="confirmingSubmit = false"
-            x-show="confirmingSubmit"
-            x-transition
-            class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
-        >
-            <h3 class="text-lg font-semibold text-stone-900">ยืนยันการส่งคำตอบ</h3>
-            <p class="mt-2 text-sm text-stone-500">หลังจากส่งแล้วจะไม่สามารถกลับมาแก้ไขคำตอบได้อีก ต้องการส่งคำตอบตอนนี้ใช่หรือไม่?</p>
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <div class="flex justify-center">
+                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </span>
+            </div>
+            <h3 class="mt-4 text-center text-lg font-semibold text-stone-900">ยืนยันการส่งคำตอบ</h3>
+            <p class="mt-2 text-center text-sm text-stone-500">หลังจากส่งแล้วจะไม่สามารถกลับมาแก้ไขคำตอบได้อีก ต้องการส่งคำตอบตอนนี้ใช่หรือไม่?</p>
 
-            <div class="mt-6 flex justify-end gap-3">
-                <button type="button" @click="confirmingSubmit = false" class="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-100">
+            <div class="mt-6 flex gap-3">
+                <button type="button" @click="closeSubmitModal()"
+                        class="flex-1 rounded-lg border border-stone-200 px-4 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50">
                     ยกเลิก
                 </button>
-                <button type="button" wire:click="submit" wire:loading.attr="disabled" wire:target="submit"
-                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60">
+                <button type="button" @click="confirmSubmit()" wire:loading.class="opacity-60"
+                        class="flex-1 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
                     ยืนยันส่งคำตอบ
                 </button>
             </div>

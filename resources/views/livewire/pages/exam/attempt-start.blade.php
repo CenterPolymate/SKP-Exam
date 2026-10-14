@@ -92,6 +92,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                     <li>• เมื่อหมดเวลา ระบบจะส่งคำตอบที่ทำไว้ให้อัตโนมัติ</li>
                     <li>• กรุณาอย่าปิดหน้าต่างหรือรีเฟรชขณะทำข้อสอบ ระบบจะบันทึกคำตอบให้อัตโนมัติทุกครั้งที่ตอบ</li>
                     <li>• เมื่อส่งคำตอบแล้วจะไม่สามารถกลับมาทำซ้ำได้</li>
+                    <li>• ระบบจะบันทึกไว้หากสลับแท็บ/หน้าต่างระหว่างทำข้อสอบ</li>
                 </ul>
             </div>
 
@@ -117,7 +118,8 @@ new #[Layout('layouts.exam-app')] class extends Component
                 <a href="{{ route('exam.dashboard') }}" wire:navigate class="flex w-1/3 items-center justify-center rounded-lg border border-stone-200 px-4 py-3 text-sm font-semibold text-stone-600 hover:bg-stone-50">
                     &larr; กลับ
                 </a>
-                <button type="button" wire:click="startExam" @disabled(! $acknowledged)
+                <button type="button" wire:click="startExam"
+                        @disabled(! $acknowledged)
                         class="flex-1 rounded-lg bg-[#BA772A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#a6661f] disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400">
                     เริ่มทำข้อสอบ
                 </button>
