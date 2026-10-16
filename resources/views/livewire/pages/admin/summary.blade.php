@@ -67,7 +67,12 @@ new #[Layout('layouts.admin')] class extends Component
     #[Computed]
     public function appliedYears()
     {
-        return Applicant::selectRaw('DISTINCT EXTRACT(YEAR FROM created_at)::int as yr')
+        // YEAR() ใช้กับ MySQL, EXTRACT(...)::int ใช้กับ PostgreSQL
+        $yearExpr = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'mysql'
+            ? 'YEAR(created_at)'
+            : 'EXTRACT(YEAR FROM created_at)::int';
+
+        return Applicant::selectRaw("DISTINCT {$yearExpr} as yr")
             ->orderByDesc('yr')
             ->pluck('yr');
     }
