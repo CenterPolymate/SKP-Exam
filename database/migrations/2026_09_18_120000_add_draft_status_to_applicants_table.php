@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,15 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE applicants MODIFY COLUMN status ENUM('draft', 'submitted', 'qualified', 'disqualified', 'code_generated', 'awaiting_review', 'passed_test', 'failed_test') NOT NULL DEFAULT 'draft'");
-
-            return;
-        }
-
-        DB::statement('ALTER TABLE applicants DROP CONSTRAINT applicants_status_check');
-        DB::statement("ALTER TABLE applicants ADD CONSTRAINT applicants_status_check CHECK ((status)::text = ANY ((ARRAY['draft'::character varying, 'submitted'::character varying, 'qualified'::character varying, 'disqualified'::character varying, 'code_generated'::character varying, 'awaiting_review'::character varying, 'passed_test'::character varying, 'failed_test'::character varying])::text[]))");
-        DB::statement("ALTER TABLE applicants ALTER COLUMN status SET DEFAULT 'draft'");
+        Schema::table('applicants', function (Blueprint $table) {
+            $table->enum('status', [
+                'draft', 'submitted', 'qualified', 'disqualified', 'code_generated',
+                'awaiting_review', 'passed_test', 'failed_test',
+            ])->default('draft')->change();
+        });
     }
 
     /**
@@ -28,14 +27,11 @@ return new class extends Migration
     {
         DB::statement("UPDATE applicants SET status = 'submitted' WHERE status = 'draft'");
 
-        if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE applicants MODIFY COLUMN status ENUM('submitted', 'qualified', 'disqualified', 'code_generated', 'awaiting_review', 'passed_test', 'failed_test') NOT NULL DEFAULT 'submitted'");
-
-            return;
-        }
-
-        DB::statement('ALTER TABLE applicants DROP CONSTRAINT applicants_status_check');
-        DB::statement("ALTER TABLE applicants ADD CONSTRAINT applicants_status_check CHECK ((status)::text = ANY ((ARRAY['submitted'::character varying, 'qualified'::character varying, 'disqualified'::character varying, 'code_generated'::character varying, 'awaiting_review'::character varying, 'passed_test'::character varying, 'failed_test'::character varying])::text[]))");
-        DB::statement("ALTER TABLE applicants ALTER COLUMN status SET DEFAULT 'submitted'");
+        Schema::table('applicants', function (Blueprint $table) {
+            $table->enum('status', [
+                'submitted', 'qualified', 'disqualified', 'code_generated',
+                'awaiting_review', 'passed_test', 'failed_test',
+            ])->default('submitted')->change();
+        });
     }
 };
