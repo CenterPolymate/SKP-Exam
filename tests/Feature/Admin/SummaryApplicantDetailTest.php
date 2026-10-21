@@ -78,11 +78,11 @@ function makeFullApplicant(array $overrides = []): Applicant
 }
 
 test('summary applicant detail page loads and shows key sections', function () {
-    Storage::fake('public');
+    Storage::fake('local');
 
     $admin = makeAdmin();
     $applicant = makeFullApplicant();
-    Storage::disk('public')->put($applicant->documents->first()->file_path, 'fake-image-content');
+    Storage::disk('local')->put($applicant->documents->first()->file_path, 'fake-image-content');
 
     $response = $this->actingAs($admin)->get(route('admin.summary.applicants.show', $applicant));
 
@@ -152,12 +152,12 @@ test('admin can edit applicant fields and they persist', function () {
 });
 
 test('admin can upload a new document which replaces the old file', function () {
-    Storage::fake('public');
+    Storage::fake('local');
 
     $admin = makeAdmin();
     $applicant = makeFullApplicant();
     $oldPath = $applicant->documents->first()->file_path;
-    Storage::disk('public')->put($oldPath, 'old-content');
+    Storage::disk('local')->put($oldPath, 'old-content');
 
     $this->actingAs($admin);
 
@@ -168,9 +168,9 @@ test('admin can upload a new document which replaces the old file', function () 
         ->call('save')
         ->assertHasNoErrors();
 
-    Storage::disk('public')->assertMissing($oldPath);
+    Storage::disk('local')->assertMissing($oldPath);
 
     $doc = ApplicantDocument::where('applicant_id', $applicant->id)->where('document_type', 'photo')->first();
     expect($doc->original_filename)->toBe('new-photo.jpg');
-    Storage::disk('public')->assertExists($doc->file_path);
+    Storage::disk('local')->assertExists($doc->file_path);
 });

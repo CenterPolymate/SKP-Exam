@@ -11,11 +11,11 @@ test('login screen can be rendered', function () {
         ->assertSeeVolt('pages.auth.login');
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('admins can authenticate using the login screen', function () {
+    $user = User::factory()->admin()->create();
 
     $component = Volt::test('pages.auth.login')
-        ->set('form.email', $user->email)
+        ->set('form.username', $user->username)
         ->set('form.password', 'password');
 
     $component->call('login');
@@ -28,10 +28,10 @@ test('users can authenticate using the login screen', function () {
 });
 
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->admin()->create();
 
     $component = Volt::test('pages.auth.login')
-        ->set('form.email', $user->email)
+        ->set('form.username', $user->username)
         ->set('form.password', 'wrong-password');
 
     $component->call('login');
@@ -43,8 +43,24 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
+test('non-admin users can not authenticate using the admin login screen', function () {
+    $user = User::factory()->create(); // role defaults to 'user'
+
+    $component = Volt::test('pages.auth.login')
+        ->set('form.username', $user->username)
+        ->set('form.password', 'password');
+
+    $component->call('login');
+
+    $component
+        ->assertHasErrors()
+        ->assertNoRedirect();
+
+    $this->assertGuest();
+});
+
 test('navigation menu can be rendered', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->admin()->create();
 
     $this->actingAs($user);
 
@@ -52,11 +68,23 @@ test('navigation menu can be rendered', function () {
 
     $response
         ->assertOk()
-        ->assertSeeVolt('layout.navigation');
+        ->assertSeeVolt('pages.admin.dashboard')
+        ->assertSee($user->name);
+});
+
+test('non-admin users are redirected away from the dashboard', function () {
+    $user = User::factory()->create(); // role defaults to 'user'
+
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertRedirect(route('login'));
+    $this->assertGuest();
 });
 
 test('users can logout', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->admin()->create();
 
     $this->actingAs($user);
 
