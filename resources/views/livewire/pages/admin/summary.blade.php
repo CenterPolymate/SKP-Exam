@@ -67,14 +67,13 @@ new #[Layout('layouts.admin')] class extends Component
     #[Computed]
     public function appliedYears()
     {
-        // YEAR() ใช้กับ MySQL, EXTRACT(...)::int ใช้กับ PostgreSQL
-        $yearExpr = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'mysql'
-            ? 'YEAR(created_at)'
-            : 'EXTRACT(YEAR FROM created_at)::int';
-
-        return Applicant::selectRaw("DISTINCT {$yearExpr} as yr")
-            ->orderByDesc('yr')
-            ->pluck('yr');
+        // ดึงปีด้วย PHP แทนการใช้ raw SQL เฉพาะฐานข้อมูล (YEAR()/EXTRACT()/strftime() ต่างกันไปแต่ละตัว)
+        // เพื่อให้พอร์ทข้ามฐานข้อมูลได้โดยไม่ต้องเขียนเงื่อนไขเพิ่มทุกครั้ง
+        return Applicant::pluck('created_at')
+            ->map(fn ($date) => $date->year)
+            ->unique()
+            ->sortDesc()
+            ->values();
     }
 
     protected function filteredApplicantsQuery()
