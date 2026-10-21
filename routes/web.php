@@ -8,6 +8,7 @@ use Livewire\Volt\Volt;
 Route::view('/', 'welcome');
 
 Volt::route('/apply', 'pages.application.personal-background')
+    ->middleware('throttle:30,1')
     ->name('application.create');
 
 Volt::route('dashboard', 'pages.admin.dashboard')

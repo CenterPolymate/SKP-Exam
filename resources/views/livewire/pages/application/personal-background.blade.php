@@ -8,6 +8,7 @@ use App\Models\ApplicantReference;
 use App\Models\ApplicantWorkHistory;
 use App\Models\Position;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -660,6 +661,17 @@ new #[Layout('layouts.application')] class extends Component
             $applicant = Applicant::findOrFail($this->applicantId);
             $applicant->update($data);
         } else {
+            // กันสแปมสร้างใบสมัครใหม่ถี่เกินไปจาก IP เดียวกัน (ฟอร์มนี้เปิดสาธารณะและรับไฟล์แนบ)
+            $rateLimitKey = 'apply-new-applicant:'.request()->ip();
+
+            if (RateLimiter::tooManyAttempts($rateLimitKey, 10)) {
+                abort(429, $this->locale === 'en'
+                    ? 'Too many applications submitted from this network. Please try again later.'
+                    : 'มีการส่งใบสมัครจากเครือข่ายนี้มากเกินไป กรุณาลองใหม่ภายหลัง');
+            }
+
+            RateLimiter::hit($rateLimitKey, 3600); // นับใหม่ทุก 1 ชั่วโมง
+
             $applicant = Applicant::create($data);
             $this->applicantId = $applicant->id;
         }
