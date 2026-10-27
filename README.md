@@ -25,6 +25,19 @@
 3. **[พจนานุกรมและโครงสร้างฐานข้อมูล (Database Schema & Dictionary)](file:///document/DATABASE_SCHEMA.md)**
    - แผนภาพความสัมพันธ์ของตาราง (ER Diagram)
    - รายละเอียดฟิลด์ ชนิดข้อมูล ความสัมพันธ์ และข้อจำกัดของทุกตาราง (Data Dictionary)
+4. **[บริบทและแนวทางการพัฒนาระบบ (Project Context & Developer Guidelines)](file:///document/PROJECT_CONTEXT.md)**
+   - สรุปกฎเกณฑ์ทางธุรกิจ (Business Rules) และข้อจำกัดทางเทคนิค (Technical Constraints)
+   - ข้อกำหนด Multi-Guard, Private Storage และ Anti-Cheating
+   - กฎเหล็ก Dos & Don'ts สำหรับนักพัฒนาและ AI Coding Assistants ([AGENTS.md](file:///AGENTS.md))
+5. **[คู่มือการติดตั้งบนเซิร์ฟเวอร์จริง (Deployment Guide)](file:///document/DEPLOYMENT_GUIDE.md)**
+   - ขั้นตอนการติดตั้งบน Production Server (Nginx, PHP 8.4+, MySQL)
+   - การตั้งค่าสิทธิ์โฟลเดอร์ Private Storage, SSL, และ Task Scheduling
+6. **[แบบทดสอบการยอมรับและคู่มือตรวจสอบ (UAT & Testing Checklist)](file:///document/TESTING_CHECKLIST.md)**
+   - เช็กลิสต์ทดสอบระบบ 7 สถานการณ์หลัก สำหรับทีม QA และ HR
+7. **[นโยบายคุ้มครองข้อมูลส่วนบุคคลและความปลอดภัย (PDPA & Security Policy)](file:///document/PDPA_AND_SECURITY.md)**
+   - การจำแนกข้อมูลอ่อนไหว, การจัดเก็บ Private Storage, และแผนการสำรองข้อมูล (Backup)
+8. **[บันทึกประวัติการพัฒนา (Changelog)](file:///document/CHANGELOG.md)**
+   - บันทึกการปล่อยเวอร์ชันและฟีเจอร์ใหม่ (Release Notes v1.0.0)
 
 ---
 
