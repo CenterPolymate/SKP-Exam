@@ -61,7 +61,7 @@
 <body>
 
     @php
-        $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุ'];
+        $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ'];
         $livingStatusLabels = [
             'own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า',
             'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น',
@@ -172,7 +172,7 @@
                             <div class="f-value">
                                 {!! $radio($applicant->gender === 'male') !!} ชาย
                                 &nbsp; {!! $radio($applicant->gender === 'female') !!} หญิง
-                                &nbsp; {!! $radio($applicant->gender === 'other') !!} ไม่ระบุ
+                                &nbsp; {!! $radio($applicant->gender === 'other') !!} ไม่ระบุเพศ
                             </div>
                         </td>
                     </tr>
@@ -384,7 +384,7 @@
                     <div class="f-value">{!! $radio($applicant->guarantor_required_ok === true) !!} ไม่ขัดข้อง (Yes) &nbsp; {!! $radio($applicant->guarantor_required_ok === false) !!} ขัดข้อง (No)</div>
                 </td>
                 <td>
-                    <div class="f-label">ในการปฏิบัติงานเป็นกะหมุนเวียนกันไป / Can you work shift by shift</div>
+                    <div class="f-label">การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต / Shift work is required only for certain positions, such as production line supervisors</div>
                     <div class="f-value">{!! $radio($applicant->shift_work_ok === true) !!} ไม่ขัดข้อง (Yes) &nbsp; {!! $radio($applicant->shift_work_ok === false) !!} ขัดข้อง (No)</div>
                 </td>
             </tr>
@@ -400,13 +400,6 @@
         </table>
 
         <div class="note-box">
-            <div style="font-size:9px;">เพื่อเป็นประโยชน์สำหรับท่าน บริษัทมีโครงการช่วยเหลือและวางแผนด้านการเงินสำหรับพนักงาน ขอให้ท่านกรอกข้อมูลดังต่อไปนี้</div>
-            <div class="f-value" style="margin-top:3px;">
-                ชำระหนี้นอกระบบจำนวน {{ $applicant->informal_debt_amount ?? '-' }} บาทต่อเดือน &nbsp; ดอกเบี้ยร้อยละ {{ $applicant->informal_debt_interest_rate ?? '-' }} บาทต่อเดือน
-            </div>
-            <div class="f-value">
-                มีบัตรเครดิต/บัตรกดเงินสด และมียอดค้างชำระเป็นจำนวนเงินรวม {{ $applicant->credit_card_debt_amount ?? '-' }} / {{ $applicant->total_outstanding_balance ?? '-' }} บาท
-            </div>
             <div class="f-value">
                 ในระยะเวลา 3 ปีที่ผ่านมาท่านเจ็บป่วยถึงขั้นนอนโรงพยาบาล หรือเคยประสบอุบัติเหตุ หรือไม่: {{ $applicant->illness_or_accident_history ?: '-' }}
             </div>

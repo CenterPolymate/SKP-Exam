@@ -174,3 +174,79 @@ test('admin can upload a new document which replaces the old file', function () 
     expect($doc->original_filename)->toBe('new-photo.jpg');
     Storage::disk('local')->assertExists($doc->file_path);
 });
+
+test('ID back number field is gone from the applicant form, admin form and export, and stored values stay untouched', function () {
+    $admin = makeAdmin();
+    $applicant = makeFullApplicant();
+    $applicant->forceFill(['national_id_back_number' => 'JT1234567890'])->save();
+
+    // ฟอร์มผู้สมัคร
+    Volt::test('pages.application.personal-background')
+        ->assertSee('เลขบัตรประชาชน')
+        ->assertDontSee('เลขหลังบัตร')
+        ->set('locale', 'en')
+        ->assertDontSee('ID Back Number');
+
+    // ฟอร์มแอดมิน + บันทึกต้องไม่แตะค่าเดิมในฐานข้อมูล
+    $this->actingAs($admin);
+    Volt::test('pages.admin.summary-applicant-detail', ['applicant' => $applicant])
+        ->assertDontSee('เลขหลังบัตร')
+        ->set('phone', '0899999000')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($applicant->fresh()->national_id_back_number)->toBe('JT1234567890');
+
+    // ไฟล์ส่งออก
+    $summary = Volt::test('pages.admin.summary')->instance();
+    $columns = (new ReflectionMethod($summary, 'exportColumns'))->invoke($summary);
+    expect(array_keys($columns))->not->toContain('เลขหลังบัตรประชาชน')
+        ->and(array_keys($columns))->toContain('เลขบัตรประชาชน');
+});
+
+test('financial information fields are removed everywhere and the shift label uses the new wording', function () {
+    $shiftLabel = 'การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต';
+    $admin = makeAdmin();
+    $applicant = makeFullApplicant([
+        'shift_work_ok' => true,
+        'illness_or_accident_history' => 'ไม่มี',
+        'informal_debt_amount' => 1234,
+    ]);
+
+    // ฟอร์มผู้สมัคร (ขั้นตอนข้อมูลอื่นๆ) ต้องไม่มีหัวข้อการเงิน
+    Volt::test('pages.application.personal-background')
+        ->set('step', 'other')
+        ->assertDontSee('ข้อมูลด้านการเงิน')
+        ->assertDontSee('หนี้นอกระบบ')
+        ->assertSee($shiftLabel);
+
+    // ฟอร์มแอดมิน
+    $this->actingAs($admin);
+    Volt::test('pages.admin.summary-applicant-detail', ['applicant' => $applicant])
+        ->assertDontSee('ข้อมูลด้านการเงิน')
+        ->assertDontSee('ยอดค้างชำระ')
+        ->assertSee($shiftLabel)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // ค่าเดิมในฐานข้อมูลต้องไม่ถูกแตะ
+    expect($applicant->fresh()->informal_debt_amount)->toBe('1234.00');
+
+    // ไฟล์ส่งออก
+    $summary = Volt::test('pages.admin.summary')->instance();
+    $headers = array_keys((new ReflectionMethod($summary, 'exportColumns'))->invoke($summary));
+    expect($headers)->toContain($shiftLabel)
+        ->not->toContain('ทำงานเป็นกะหมุนเวียนได้')
+        ->not->toContain('ยอดค้างชำระ (บาท)')
+        ->not->toContain('หนี้นอกระบบ (บาท/เดือน)');
+
+    // PDF และหน้าตรวจทาน
+    $pdfHtml = view('pdf.application', ['applicant' => $applicant->fresh()->load(['position', 'education', 'languages', 'workHistories', 'references', 'documents'])])->render();
+    expect($pdfHtml)->toContain($shiftLabel)
+        ->not->toContain('ชำระหนี้นอกระบบ')
+        ->not->toContain('บัตรเครดิต/บัตรกดเงินสด')
+        ->toContain('ในระยะเวลา 3 ปีที่ผ่านมา');
+
+    $reviewHtml = view('partials.applicant-review', ['a' => $applicant->fresh()->load(['position', 'education', 'languages', 'workHistories', 'references', 'documents'])])->render();
+    expect($reviewHtml)->toContain($shiftLabel)->not->toContain('ทำงานเป็นกะหมุนเวียนได้');
+});

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasCustomTitles;
 use App\Models\Applicant;
 use App\Models\ApplicantDocument;
 use App\Models\ApplicantEducation;
@@ -16,6 +17,7 @@ use Livewire\WithFileUploads;
 
 new #[Layout('layouts.application')] class extends Component
 {
+    use HasCustomTitles;
     use WithFileUploads;
 
     // ภาษาที่เลือกไว้จากหน้า landing page (ผ่านคุกกี้ landingLang)
@@ -62,7 +64,6 @@ new #[Layout('layouts.application')] class extends Component
 
     // บัตรประชาชน & ที่อยู่
     public $national_id_number = '';
-    public $national_id_back_number = '';
     public $id_issue_date = '';
     public $id_expiry_date = '';
     public $current_address = '';
@@ -109,10 +110,6 @@ new #[Layout('layouts.application')] class extends Component
     public $special_skills = '';
     public $guarantor_required_ok = '';
     public $shift_work_ok = '';
-    public $informal_debt_amount = '';
-    public $informal_debt_interest_rate = '';
-    public $credit_card_debt_amount = '';
-    public $total_outstanding_balance = '';
     public $illness_or_accident_history = '';
     public $known_person_in_company = '';
     public $known_person_relation = '';
@@ -218,7 +215,7 @@ new #[Layout('layouts.application')] class extends Component
             'gender' => ['th' => 'เพศ', 'en' => 'Gender'],
             'gender_male' => ['th' => 'ชาย', 'en' => 'Male'],
             'gender_female' => ['th' => 'หญิง', 'en' => 'Female'],
-            'gender_other' => ['th' => 'อื่นๆ', 'en' => 'Other'],
+            'gender_other' => ['th' => 'ไม่ระบุเพศ', 'en' => 'Prefer not to say'],
             'height' => ['th' => 'ส่วนสูง (ซม.)', 'en' => 'Height (cm)'],
             'height_ph' => ['th' => 'ส่วนสูง', 'en' => 'Height'],
             'weight' => ['th' => 'น้ำหนัก (กก.)', 'en' => 'Weight (kg)'],
@@ -240,8 +237,6 @@ new #[Layout('layouts.application')] class extends Component
             'line_id' => ['th' => 'Line ID', 'en' => 'Line ID'],
 
             'national_id' => ['th' => 'เลขบัตรประชาชน', 'en' => 'National ID Number'],
-            'national_id_back' => ['th' => 'เลขหลังบัตรประชาชน', 'en' => 'ID Back Number'],
-            'national_id_back_ph' => ['th' => 'เลขหลังบัตร', 'en' => 'Back number'],
             'id_issue_date' => ['th' => 'วันออกบัตร', 'en' => 'Issue Date'],
             'id_expiry_date' => ['th' => 'บัตรหมดอายุ', 'en' => 'Expiry Date'],
             'current_address' => ['th' => 'ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก', 'en' => 'Current Address'],
@@ -350,14 +345,10 @@ new #[Layout('layouts.application')] class extends Component
 
             'special_skills_label' => ['th' => 'ความรู้ความสามารถพิเศษ', 'en' => 'Special Skills / Abilities'],
             'guarantor_label' => ['th' => 'สามารถหาผู้ค้ำประกันได้หรือไม่', 'en' => 'Can you provide a gruarantor?'],
-            'shift_label' => ['th' => 'สามารถทำงานเป็นกะหมุนเวียนได้หรือไม่', 'en' => 'Can you work shift by shift?'],
+            'shift_label' => ['th' => 'การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต', 'en' => 'Shift work is required only for certain positions, such as production line supervisors'],
             'yes_able' => ['th' => 'ได้', 'en' => 'Yes'],
             'no_able' => ['th' => 'ไม่ได้', 'en' => 'No'],
 
-            'debt_amount' => ['th' => 'เงินที่ชำระหนี้นอกระบบ (บาท/เดือน)', 'en' => 'Informal debt amounting to (Baht per month)'],
-            'debt_interest' => ['th' => 'ดอกเบี้ย (ร้อยละ/เดือน)', 'en' => 'Interest Rate (Baht per month)'],
-            'credit_debt' => ['th' => 'วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)', 'en' => 'You have a credit card/cash card (amount)'],
-            'outstanding_balance' => ['th' => 'ยอดค้างชำระ (บาท)', 'en' => 'You have an outstanding balance totaling (Baht)'],
 
             'illness_label' => ['th' => 'ในช่วง 3 ปีที่ผ่านมา เคยเจ็บป่วยเข้าโรงพยาบาลหรือประสบอุบัติเหตุหรือไม่ (ถ้ามีระบุรายละเอียด)', 'en' => 'In the past 3 years, have you been hospitalized or had an accident? (please specify if any)'],
             'illness_ph' => ['th' => 'รายละเอียด (ถ้ามี)', 'en' => 'Details (if any)'],
@@ -535,7 +526,6 @@ new #[Layout('layouts.application')] class extends Component
             'facebook' => ['nullable', 'string', 'max:255'],
 
             'national_id_number' => ['required', 'string', 'max:20'],
-            'national_id_back_number' => ['nullable', 'string', 'max:20'],
             'id_issue_date' => ['nullable', 'date'],
             'id_expiry_date' => ['nullable', 'date'],
             'current_address' => ['required', 'string'],
@@ -651,6 +641,15 @@ new #[Layout('layouts.application')] class extends Component
 
     public function submitPersonal(): void
     {
+        // โหมดอังกฤษไม่มีช่องชื่อภาษาไทย: คัดลอกชื่อ EN ลงคอลัมน์ TH (คอลัมน์ TH เป็น NOT NULL
+        // และหน้าแอดมิน/PDF/หน้าสอบอ่านชื่อจากคอลัมน์ TH)
+        if ($this->locale === 'en') {
+            $this->title_th = $this->title_en;
+            $this->first_name_th = $this->first_name_en;
+            $this->last_name_th = $this->last_name_en;
+            $this->nickname_th = $this->nickname_en;
+        }
+
         $data = $this->validate();
 
         // ฟิลด์ที่เว้นว่างไว้ (nullable) ต้องบันทึกเป็น NULL ไม่ใช่ empty string
@@ -671,6 +670,11 @@ new #[Layout('layouts.application')] class extends Component
             }
 
             RateLimiter::hit($rateLimitKey, 3600); // นับใหม่ทุก 1 ชั่วโมง
+
+            // หลักฐานการยินยอมนโยบาย PDPA ที่หน้าแรก (เก็บใน session ตอนกดยินยอม)
+            $consent = session(config('privacy.session_key'));
+            $data['pdpa_policy_version'] = $consent['version'] ?? null;
+            $data['pdpa_consented_at'] = $consent['consented_at'] ?? null;
 
             $applicant = Applicant::create($data);
             $this->applicantId = $applicant->id;
@@ -869,17 +873,13 @@ new #[Layout('layouts.application')] class extends Component
             'guarantor_required_ok' => ['nullable', 'boolean'],
             'shift_work_ok' => ['required', 'boolean'],
 
-            'informal_debt_amount' => ['nullable', 'numeric', 'min:0'],
-            'informal_debt_interest_rate' => ['nullable', 'numeric', 'min:0'],
-            'credit_card_debt_amount' => ['nullable', 'numeric', 'min:0'],
-            'total_outstanding_balance' => ['nullable', 'numeric', 'min:0'],
 
             'illness_or_accident_history' => ['nullable', 'string', 'max:1000'],
 
             'known_person_in_company' => ['nullable', 'string', 'max:255'],
             'known_person_relation' => ['nullable', 'string', 'max:255'],
             'available_start_date' => ['nullable', 'date'],
-            'source_channels' => ['nullable', 'array'],
+            'source_channels' => ['required', 'array'],
             'source_channel_other' => ['nullable', 'string', 'max:255'],
             'referred_friend_name' => ['nullable', 'string', 'max:255'],
         ];
@@ -893,6 +893,7 @@ new #[Layout('layouts.application')] class extends Component
                 'references.2.relationship' => 'Relationship (Person 2)',
                 'references.2.phone' => 'Phone Number (Person 2)',
                 'shift_work_ok' => $this->tr('shift_label'),
+                'source_channels' => $this->tr('source_channels_label'),
             ]
             : [
                 'references.1.name' => 'ชื่อ-นามสกุล บุคคลที่ 1',
@@ -902,6 +903,7 @@ new #[Layout('layouts.application')] class extends Component
                 'references.2.relationship' => 'ความสัมพันธ์ บุคคลที่ 2',
                 'references.2.phone' => 'เบอร์โทร บุคคลที่ 2',
                 'shift_work_ok' => $this->tr('shift_label'),
+                'source_channels' => $this->tr('source_channels_label'),
             ];
 
         foreach ($this->documentTypes() as $type => $meta) {
@@ -940,10 +942,6 @@ new #[Layout('layouts.application')] class extends Component
             'special_skills' => $data['special_skills'],
             'guarantor_required_ok' => $data['guarantor_required_ok'],
             'shift_work_ok' => $data['shift_work_ok'],
-            'informal_debt_amount' => $data['informal_debt_amount'],
-            'informal_debt_interest_rate' => $data['informal_debt_interest_rate'],
-            'credit_card_debt_amount' => $data['credit_card_debt_amount'],
-            'total_outstanding_balance' => $data['total_outstanding_balance'],
             'illness_or_accident_history' => $data['illness_or_accident_history'],
             'known_person_in_company' => $data['known_person_in_company'],
             'known_person_relation' => $data['known_person_relation'],
@@ -1125,14 +1123,15 @@ new #[Layout('layouts.application')] class extends Component
                 {{-- ข้อมูลส่วนตัว --}}
                 <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" :locale="$locale" />
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.select :label="$this->tr('title_th_label')" model="title_th" required :locale="$locale"
-                        :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว', '-' => '-']" />
-                    <x-form.input :label="$this->tr('first_name_th_label')" model="first_name_th" required :placeholder="$this->tr('first_name_th_ph')" />
-                    <x-form.input :label="$this->tr('last_name_th_label')" model="last_name_th" required :placeholder="$this->tr('last_name_th_ph')" />
-                    <x-form.input :label="$this->tr('nickname_th_label')" model="nickname_th" required :placeholder="$this->tr('nickname_th_ph')" />
+                    {{-- โหมดอังกฤษไม่แสดงช่องชื่อภาษาไทย (คัดลอกจากชื่อ EN ตอนบันทึก — ดู submitPersonal) --}}
+                    @if ($locale !== 'en')
+                        <x-form.title-select :label="$this->tr('title_th_label')" lang="th" :choice="$title_th_choice" :presets="$this->titlePresets('th')" required :locale="$locale" />
+                        <x-form.input :label="$this->tr('first_name_th_label')" model="first_name_th" required :placeholder="$this->tr('first_name_th_ph')" />
+                        <x-form.input :label="$this->tr('last_name_th_label')" model="last_name_th" required :placeholder="$this->tr('last_name_th_ph')" />
+                        <x-form.input :label="$this->tr('nickname_th_label')" model="nickname_th" required :placeholder="$this->tr('nickname_th_ph')" />
+                    @endif
 
-                    <x-form.select label="Title (ENG)" model="title_en" required :locale="$locale"
-                        :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.', '-' => '-']" />
+                    <x-form.title-select label="Title (ENG)" lang="en" :choice="$title_en_choice" :presets="$this->titlePresets('en')" required :locale="$locale" />
                     <x-form.input label="Name (ENG)" model="first_name_en" required placeholder="Name" />
                     <x-form.input label="Surname (ENG)" model="last_name_en" required placeholder="Surname" />
                     <x-form.input label="Nickname (ENG)" model="nickname_en" required placeholder="Nickname" />
@@ -1177,9 +1176,8 @@ new #[Layout('layouts.application')] class extends Component
 
                 {{-- บัตรประชาชน & ที่อยู่ --}}
                 <x-form.section-title thai="บัตรประชาชน & ที่อยู่" english="ID card & Address" :locale="$locale" />
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <x-form.input :label="$this->tr('national_id')" model="national_id_number" required placeholder="x-xxxx-xxxxx-xx-x" />
-                    <x-form.input :label="$this->tr('national_id_back')" model="national_id_back_number" :placeholder="$this->tr('national_id_back_ph')" />
                     <x-form.input :label="$this->tr('id_issue_date')" model="id_issue_date" type="date" />
                     <x-form.input :label="$this->tr('id_expiry_date')" model="id_expiry_date" type="date" />
                 </div>
@@ -1416,14 +1414,6 @@ new #[Layout('layouts.application')] class extends Component
                     <x-form.radio-group :label="$this->tr('shift_label')" model="shift_work_ok" required :options="['1' => $this->tr('yes_able'), '0' => $this->tr('no_able')]" />
                 </div>
 
-                <x-form.section-title thai="ข้อมูลด้านการเงิน" english="Financial Information" :locale="$locale" />
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-form.input :label="$this->tr('debt_amount')" model="informal_debt_amount" type="number" step="0.01" placeholder="0" />
-                    <x-form.input :label="$this->tr('debt_interest')" model="informal_debt_interest_rate" type="number" step="0.01" placeholder="0" />
-                    <x-form.input :label="$this->tr('credit_debt')" model="credit_card_debt_amount" type="number" step="0.01" placeholder="0" />
-                    <x-form.input :label="$this->tr('outstanding_balance')" model="total_outstanding_balance" type="number" step="0.01" placeholder="0" />
-                </div>
-
                 <x-form.section-title thai="ประวัติสุขภาพ" english="Health History" :locale="$locale" />
                 <x-form.textarea :label="$this->tr('illness_label')" model="illness_or_accident_history" :placeholder="$this->tr('illness_ph')" />
 
@@ -1432,7 +1422,7 @@ new #[Layout('layouts.application')] class extends Component
                     <x-form.input :label="$this->tr('start_date_label')" model="available_start_date" type="date" />
                 </div>
                 <div class="mt-5">
-                    <x-form.checkbox-group :label="$this->tr('source_channels_label')" model="source_channels" :options="$this->sourceChannelOptions($locale)" live />
+                    <x-form.checkbox-group :label="$this->tr('source_channels_label')" model="source_channels" :options="$this->sourceChannelOptions($locale)" required live />
                 </div>
                 @if (in_array('อื่นๆ', $source_channels) || in_array('เพื่อน/ญาติแนะนำ', $source_channels))
                     <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">

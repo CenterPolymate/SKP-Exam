@@ -118,7 +118,7 @@ new #[Layout('layouts.admin')] class extends Component
         $fmtDate = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '-';
         $tier = fn ($v) => is_null($v) ? '-' : ($v >= 4 ? 'ดีมาก' : ($v >= 2 ? 'ดี' : 'พอใช้'));
 
-        $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'อื่นๆ'];
+        $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ'];
         $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];
         $maritalStatusLabels = ['single' => 'โสด', 'married' => 'แต่งงาน', 'divorced' => 'หย่า', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่'];
         $militaryStatusLabels = ['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร'];
@@ -183,7 +183,6 @@ new #[Layout('layouts.admin')] class extends Component
 
             // บัตรประชาชน
             'เลขบัตรประชาชน' => fn ($a) => $a->national_id_number,
-            'เลขหลังบัตรประชาชน' => fn ($a) => $a->national_id_back_number ?: '-',
             'วันออกบัตร' => fn ($a) => $fmtDate($a->id_issue_date),
             'วันหมดอายุบัตร' => fn ($a) => $fmtDate($a->id_expiry_date),
 
@@ -246,11 +245,7 @@ new #[Layout('layouts.admin')] class extends Component
             // อื่นๆ
             'ความรู้ความสามารถพิเศษ' => fn ($a) => $a->special_skills ?: '-',
             'สามารถหาผู้ค้ำประกันได้' => fn ($a) => $yesNo($a->guarantor_required_ok),
-            'ทำงานเป็นกะหมุนเวียนได้' => fn ($a) => $yesNo($a->shift_work_ok),
-            'หนี้นอกระบบ (บาท/เดือน)' => fn ($a) => $a->informal_debt_amount ?? '-',
-            'ดอกเบี้ย (ร้อยละ/เดือน)' => fn ($a) => $a->informal_debt_interest_rate ?? '-',
-            'วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)' => fn ($a) => $a->credit_card_debt_amount ?? '-',
-            'ยอดค้างชำระ (บาท)' => fn ($a) => $a->total_outstanding_balance ?? '-',
+            'การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต' => fn ($a) => $yesNo($a->shift_work_ok),
             'ประวัติเจ็บป่วย/อุบัติเหตุ (3 ปีย้อนหลัง)' => fn ($a) => $a->illness_or_accident_history ?: '-',
             'บุคคลในบริษัทที่รู้จัก' => fn ($a) => $a->known_person_in_company ?: '-',
             'ความสัมพันธ์ (บุคคลที่รู้จัก)' => fn ($a) => $a->known_person_relation ?: '-',
@@ -264,6 +259,8 @@ new #[Layout('layouts.admin')] class extends Component
             'ยินยอมตามนโยบายความเป็นส่วนตัว' => fn ($a) => $yesNo($a->privacy_policy_consent),
             'ลงชื่อผู้สมัครงาน' => fn ($a) => $a->signature_name ?: '-',
             'วันที่ลงชื่อ' => fn ($a) => $fmtDate($a->signed_at),
+            'ยินยอมนโยบาย PDPA (วันเวลา)' => fn ($a) => $a->pdpa_consented_at?->format('d/m/Y H:i') ?? '-',
+            'เวอร์ชันนโยบาย PDPA ที่ยินยอม' => fn ($a) => $a->pdpa_policy_version ?: '-',
 
             // การตรวจสอบของ HR
             'ตรวจสอบ Blacklist (HR)' => fn ($a) => $yesNo($a->hr_blacklist_checked),
@@ -373,7 +370,7 @@ new #[Layout('layouts.admin')] class extends Component
         return match ($gender) {
             'male' => 'ชาย',
             'female' => 'หญิง',
-            'other' => 'อื่นๆ',
+            'other' => 'ไม่ระบุเพศ',
             default => '-',
         };
     }
@@ -485,7 +482,7 @@ new #[Layout('layouts.admin')] class extends Component
                         <option value="">ทั้งหมด</option>
                         <option value="male">ชาย</option>
                         <option value="female">หญิง</option>
-                        <option value="other">อื่นๆ</option>
+                        <option value="other">ไม่ระบุเพศ</option>
                     </select>
                 </div>
                 <div>
@@ -557,7 +554,7 @@ new #[Layout('layouts.admin')] class extends Component
                                 <td class="whitespace-nowrap px-4 py-3">{{ $this->thaiDate($applicant->created_at) }}</td>
                                 <td class="px-4 py-3">{{ implode(', ', (array) $applicant->source_channels) ?: '-' }}</td>
                                 <td class="px-4 py-3">{{ $this->genderLabel($applicant->gender) }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 font-medium text-stone-900">{{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-medium text-stone-900">{{ $applicant->full_name_th }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">{{ $applicant->position->title ?? '-' }}</td>
                                 <td class="px-4 py-3">{{ $edu?->gpa ?? '-' }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">{{ $this->degreeLevelLabel($edu?->degree_level) }}</td>

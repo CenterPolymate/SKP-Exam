@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasCustomTitles;
 use App\Models\Applicant;
 use App\Models\ApplicantDocument;
 use App\Models\ApplicantEducation;
@@ -15,6 +16,7 @@ use Livewire\WithFileUploads;
 
 new #[Layout('layouts.admin')] class extends Component
 {
+    use HasCustomTitles;
     use WithFileUploads;
 
     public Applicant $applicant;
@@ -58,7 +60,6 @@ new #[Layout('layouts.admin')] class extends Component
 
     // บัตรประชาชน & ที่อยู่
     public $national_id_number = '';
-    public $national_id_back_number = '';
     public $id_issue_date = '';
     public $id_expiry_date = '';
     public $current_address = '';
@@ -103,10 +104,6 @@ new #[Layout('layouts.admin')] class extends Component
     public $special_skills = '';
     public $guarantor_required_ok = '';
     public $shift_work_ok = '';
-    public $informal_debt_amount = '';
-    public $informal_debt_interest_rate = '';
-    public $credit_card_debt_amount = '';
-    public $total_outstanding_balance = '';
     public $illness_or_accident_history = '';
     public $known_person_in_company = '';
     public $known_person_relation = '';
@@ -140,6 +137,7 @@ new #[Layout('layouts.admin')] class extends Component
         $this->first_name_en = $applicant->first_name_en ?? '';
         $this->last_name_en = $applicant->last_name_en ?? '';
         $this->nickname_en = $applicant->nickname_en ?? '';
+        $this->loadTitleChoices();
 
         $this->date_of_birth = $applicant->date_of_birth?->format('Y-m-d') ?? '';
         $this->nationality = $applicant->nationality ?? '';
@@ -163,7 +161,6 @@ new #[Layout('layouts.admin')] class extends Component
         $this->facebook = $applicant->facebook ?? '';
 
         $this->national_id_number = $applicant->national_id_number ?? '';
-        $this->national_id_back_number = $applicant->national_id_back_number ?? '';
         $this->id_issue_date = $applicant->id_issue_date?->format('Y-m-d') ?? '';
         $this->id_expiry_date = $applicant->id_expiry_date?->format('Y-m-d') ?? '';
         $this->current_address = $applicant->current_address ?? '';
@@ -242,10 +239,6 @@ new #[Layout('layouts.admin')] class extends Component
         $this->special_skills = $applicant->special_skills ?? '';
         $this->guarantor_required_ok = $this->boolToRadio($applicant->guarantor_required_ok);
         $this->shift_work_ok = $this->boolToRadio($applicant->shift_work_ok);
-        $this->informal_debt_amount = $applicant->informal_debt_amount !== null ? (string) $applicant->informal_debt_amount : '';
-        $this->informal_debt_interest_rate = $applicant->informal_debt_interest_rate !== null ? (string) $applicant->informal_debt_interest_rate : '';
-        $this->credit_card_debt_amount = $applicant->credit_card_debt_amount !== null ? (string) $applicant->credit_card_debt_amount : '';
-        $this->total_outstanding_balance = $applicant->total_outstanding_balance !== null ? (string) $applicant->total_outstanding_balance : '';
         $this->illness_or_accident_history = $applicant->illness_or_accident_history ?? '';
         $this->known_person_in_company = $applicant->known_person_in_company ?? '';
         $this->known_person_relation = $applicant->known_person_relation ?? '';
@@ -437,7 +430,6 @@ new #[Layout('layouts.admin')] class extends Component
             'facebook' => ['nullable', 'string', 'max:255'],
 
             'national_id_number' => ['required', 'string', 'max:20'],
-            'national_id_back_number' => ['nullable', 'string', 'max:20'],
             'id_issue_date' => ['nullable', 'date'],
             'id_expiry_date' => ['nullable', 'date'],
             'current_address' => ['required', 'string'],
@@ -469,10 +461,6 @@ new #[Layout('layouts.admin')] class extends Component
             'special_skills' => ['nullable', 'string', 'max:1000'],
             'guarantor_required_ok' => ['nullable', 'boolean'],
             'shift_work_ok' => ['nullable', 'boolean'],
-            'informal_debt_amount' => ['nullable', 'numeric', 'min:0'],
-            'informal_debt_interest_rate' => ['nullable', 'numeric', 'min:0'],
-            'credit_card_debt_amount' => ['nullable', 'numeric', 'min:0'],
-            'total_outstanding_balance' => ['nullable', 'numeric', 'min:0'],
             'illness_or_accident_history' => ['nullable', 'string', 'max:1000'],
             'known_person_in_company' => ['nullable', 'string', 'max:255'],
             'known_person_relation' => ['nullable', 'string', 'max:255'],
@@ -599,7 +587,7 @@ new #[Layout('layouts.admin')] class extends Component
             'height_cm', 'weight_kg', 'has_congenital_disease', 'congenital_disease_detail',
             'has_criminal_record', 'criminal_record_detail', 'country', 'hometown',
             'email', 'line_id', 'phone', 'instagram', 'twitter', 'facebook',
-            'national_id_number', 'national_id_back_number', 'id_issue_date', 'id_expiry_date', 'current_address',
+            'national_id_number', 'id_issue_date', 'id_expiry_date', 'current_address',
             'living_status', 'marital_status', 'marriage_registered', 'spouse_name', 'spouse_occupation', 'children_count',
             'father_name', 'father_age', 'father_occupation', 'father_alive',
             'mother_name', 'mother_age', 'mother_occupation', 'mother_alive',
@@ -607,7 +595,6 @@ new #[Layout('layouts.admin')] class extends Component
             'military_status', 'has_lese_majeste_record', 'lese_majeste_detail',
             'language_certificate_note',
             'special_skills', 'guarantor_required_ok', 'shift_work_ok',
-            'informal_debt_amount', 'informal_debt_interest_rate', 'credit_card_debt_amount', 'total_outstanding_balance',
             'illness_or_accident_history', 'known_person_in_company', 'known_person_relation', 'available_start_date',
             'source_channel_other', 'referred_friend_name',
             'signature_name', 'data_accuracy_consent', 'privacy_policy_consent',
@@ -741,7 +728,7 @@ new #[Layout('layouts.admin')] class extends Component
         <div class="mt-3 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <h1 class="text-2xl font-bold text-stone-900">
-                    {{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}
+                    {{ $applicant->full_name_th }}
                 </h1>
                 <p class="mt-1 text-sm text-stone-500">
                     สมัครตำแหน่ง {{ $applicant->position->title ?? '-' }} &middot; ใบสมัครเลขที่ APP-{{ str_pad($applicant->id, 6, '0', STR_PAD_LEFT) }}
@@ -825,14 +812,12 @@ new #[Layout('layouts.admin')] class extends Component
             {{-- ข้อมูลส่วนตัว --}}
             <x-form.section-title thai="ข้อมูลส่วนตัว" english="Personal information" />
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <x-form.select label="คำนำหน้า (TH)" model="title_th" required
-                    :options="['นาย' => 'นาย', 'นาง' => 'นาง', 'นางสาว' => 'นางสาว', '-' => '-']" />
+                <x-form.title-select label="คำนำหน้า (TH)" lang="th" :choice="$title_th_choice" :presets="$this->titlePresets('th')" required />
                 <x-form.input label="ชื่อ (TH)" model="first_name_th" required placeholder="ชื่อ" />
                 <x-form.input label="นามสกุล (TH)" model="last_name_th" required placeholder="นามสกุล" />
                 <x-form.input label="ชื่อเล่น (TH)" model="nickname_th" required placeholder="ชื่อเล่น" />
 
-                <x-form.select label="Title (ENG)" model="title_en" required
-                    :options="['Mr.' => 'Mr.', 'Mrs.' => 'Mrs.', 'Ms.' => 'Ms.', '-' => '-']" />
+                <x-form.title-select label="Title (ENG)" lang="en" :choice="$title_en_choice" :presets="$this->titlePresets('en')" required />
                 <x-form.input label="Name (ENG)" model="first_name_en" required placeholder="Name" />
                 <x-form.input label="Surname (ENG)" model="last_name_en" required placeholder="Surname" />
                 <x-form.input label="Nickname (ENG)" model="nickname_en" required placeholder="Nickname" />
@@ -844,7 +829,7 @@ new #[Layout('layouts.admin')] class extends Component
 
                 <x-form.input label="ศาสนา" model="religion" required placeholder="เช่น พุทธ" />
                 <x-form.select label="เพศ" model="gender" required
-                    :options="['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'อื่นๆ']" />
+                    :options="['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ']" />
                 <x-form.input label="ส่วนสูง (ซม.)" model="height_cm" type="number" step="0.1" required placeholder="ส่วนสูง" />
                 <x-form.input label="น้ำหนัก (กก.)" model="weight_kg" type="number" step="0.1" required placeholder="น้ำหนัก" />
 
@@ -877,9 +862,8 @@ new #[Layout('layouts.admin')] class extends Component
 
             {{-- บัตรประชาชน & ที่อยู่ --}}
             <x-form.section-title thai="บัตรประชาชน & ที่อยู่" english="ID card & Address" />
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <x-form.input label="เลขบัตรประชาชน" model="national_id_number" required placeholder="x-xxxx-xxxxx-xx-x" />
-                <x-form.input label="เลขหลังบัตรประชาชน" model="national_id_back_number" placeholder="เลขหลังบัตร" />
                 <x-form.input label="วันออกบัตร" model="id_issue_date" type="date" />
                 <x-form.input label="บัตรหมดอายุ" model="id_expiry_date" type="date" />
             </div>
@@ -1026,16 +1010,7 @@ new #[Layout('layouts.admin')] class extends Component
             </div>
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <x-form.radio-group label="สามารถหาผู้ค้ำประกันได้หรือไม่" model="guarantor_required_ok" :options="['1' => 'ได้', '0' => 'ไม่ได้']" />
-                <x-form.radio-group label="สามารถทำงานเป็นกะหมุนเวียนได้หรือไม่" model="shift_work_ok" :options="['1' => 'ได้', '0' => 'ไม่ได้']" />
-            </div>
-
-            {{-- ข้อมูลด้านการเงิน --}}
-            <x-form.section-title thai="ข้อมูลด้านการเงิน" english="Financial Information" />
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <x-form.input label="เงินที่ชำระหนี้นอกระบบ (บาท/เดือน)" model="informal_debt_amount" type="number" step="0.01" placeholder="0" />
-                <x-form.input label="ดอกเบี้ย (ร้อยละ/เดือน)" model="informal_debt_interest_rate" type="number" step="0.01" placeholder="0" />
-                <x-form.input label="วงเงินบัตรเครดิต/บัตรกดเงินสด (บาท)" model="credit_card_debt_amount" type="number" step="0.01" placeholder="0" />
-                <x-form.input label="ยอดค้างชำระ (บาท)" model="total_outstanding_balance" type="number" step="0.01" placeholder="0" />
+                <x-form.radio-group label="การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต" model="shift_work_ok" :options="['1' => 'ได้', '0' => 'ไม่ได้']" />
             </div>
 
             {{-- ประวัติสุขภาพ --}}

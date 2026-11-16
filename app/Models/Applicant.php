@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -101,6 +102,10 @@ class Applicant extends Model
         'signature_name',
         'signed_at',
 
+        // หลักฐานการยินยอมนโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA) ที่หน้าแรก
+        'pdpa_consented_at',
+        'pdpa_policy_version',
+
         // การตรวจสอบของ HR
         'status',
         'hr_blacklist_checked',
@@ -120,6 +125,7 @@ class Applicant extends Model
             'available_start_date' => 'date',
             'signed_at' => 'date',
             'reviewed_at' => 'datetime',
+            'pdpa_consented_at' => 'datetime',
             'expected_salary' => 'decimal:2',
             'height_cm' => 'decimal:1',
             'weight_kg' => 'decimal:1',
@@ -142,6 +148,26 @@ class Applicant extends Model
             'hr_social_checked' => 'boolean',
             'source_channels' => 'array',
         ];
+    }
+
+    /**
+     * ชื่อเต็มภาษาไทยสำหรับแสดงผล: คำนำหน้ามาตรฐาน (นาย/นาง/นางสาว) ติดกับชื่อ ("นายสมชาย ใจดี")
+     * ส่วนคำนำหน้าที่ผู้สมัครกรอกเอง (เช่น ดร., ร้อยตรี) เว้นวรรค ("ดร. สมชาย ใจดี")
+     */
+    protected function fullNameTh(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $title = trim((string) $this->title_th);
+            $separator = in_array($title, ['', 'นาย', 'นาง', 'นางสาว'], true) ? '' : ' ';
+
+            return $title.$separator.trim($this->first_name_th.' '.$this->last_name_th);
+        });
+    }
+
+    /** ชื่อเต็มภาษาอังกฤษสำหรับแสดงผล เช่น "Dr. Somchai Jaidee" */
+    protected function fullNameEn(): Attribute
+    {
+        return Attribute::get(fn (): string => trim($this->title_en.' '.$this->first_name_en.' '.$this->last_name_en));
     }
 
     public function position(): BelongsTo

@@ -7,7 +7,7 @@
     $genderLabels = [
         'male' => $locale === null ? 'ชาย / Male' : $t('ชาย', 'Male'),
         'female' => $locale === null ? 'หญิง / Female' : $t('หญิง', 'Female'),
-        'other' => $locale === null ? 'อื่นๆ / Other' : $t('อื่นๆ', 'Other'),
+        'other' => $locale === null ? 'ไม่ระบุเพศ / Prefer not to say' : $t('ไม่ระบุเพศ', 'Prefer not to say'),
     ];
     $livingStatusLabels = [
         'own_home' => $t('บ้านส่วนตัว', 'Own home'), 'rent_home' => $t('บ้านเช่า', 'Rented home'),
@@ -111,7 +111,7 @@
 <dl class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
     <x-review.field :label="$t('ความรู้ความสามารถพิเศษ', 'Special Skills')">{{ $a->special_skills }}</x-review.field>
     <x-review.field :label="$t('สามารถหาผู้ค้ำประกันได้', 'Can Provide Guarantor')">{{ $yesNo($a->guarantor_required_ok) }}</x-review.field>
-    <x-review.field :label="$t('ทำงานเป็นกะหมุนเวียนได้', 'Can Work Rotating Shifts')">{{ $yesNo($a->shift_work_ok) }}</x-review.field>
+    <x-review.field :label="$t('การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต', 'Shift work is required only for certain positions, such as production line supervisors')">{{ $yesNo($a->shift_work_ok) }}</x-review.field>
     <x-review.field :label="$t('วันที่พร้อมเริ่มงาน', 'Available Start Date')">{{ $fmtDate($a->available_start_date) }}</x-review.field>
     <x-review.field :label="$t('ช่องทางที่ทราบข่าว', 'How You Heard About This Job')">{{ implode(', ', (array) $a->source_channels) }}</x-review.field>
 </dl>

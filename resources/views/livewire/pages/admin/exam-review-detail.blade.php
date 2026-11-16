@@ -74,7 +74,7 @@ new #[Layout('layouts.admin')] class extends Component
                         {{ mb_substr($applicant->first_name_th, 0, 1) }}
                     </span>
                     <div>
-                        <p class="font-semibold text-stone-900">{{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}</p>
+                        <p class="font-semibold text-stone-900">{{ $applicant->full_name_th }}</p>
                         <p class="text-xs text-stone-400">
                             APP-{{ str_pad($applicant->id, 6, '0', STR_PAD_LEFT) }} &middot; {{ $applicant->position->title ?? '-' }}
                         </p>

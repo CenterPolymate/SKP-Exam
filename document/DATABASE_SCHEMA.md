@@ -76,6 +76,8 @@ erDiagram
 | `national_id_number` | VARCHAR(13) | Unique, Not Null | เลขประจำตัวประชาชน 13 หลัก |
 | `national_id_back_number` | VARCHAR(20) | Nullable | เลขหลังบัตรประชาชน (Laser ID) |
 | `military_status` | VARCHAR | Nullable | สถานะทางทหาร (ผ่านการเกณฑ์/ได้รับการยกเว้น) |
+| `pdpa_consented_at` | TIMESTAMP | Nullable | วันเวลาที่ผู้สมัครกดยินยอมนโยบายคุ้มครองข้อมูลส่วนบุคคลที่หน้าแรก |
+| `pdpa_policy_version` | VARCHAR(100) | Nullable | เวอร์ชันของนโยบายที่ยินยอม เช่น `QMR-GSK-039 Rev.01` (ค่าจาก `config/privacy.php`) |
 | `status` | ENUM | Default: `'draft'` | สถานะของผู้สมัคร: `draft`, `submitted`, `qualified`, `disqualified`, `code_generated`, `awaiting_review`, `passed_test`, `failed_test` |
 | `hr_blacklist_checked`, `hr_criminal_checked`, `hr_social_checked` | BOOLEAN | Default: false | ผลการตรวจสอบคัดกรองของ HR |
 | `hr_verification_note` | TEXT | Nullable | บันทึกการตรวจสอบของ HR |

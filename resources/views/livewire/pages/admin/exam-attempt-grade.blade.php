@@ -81,7 +81,7 @@ new #[Layout('layouts.admin')] class extends Component
             <div>
                 <h1 class="text-xl font-bold text-stone-900">{{ $attempt->exam->name }}</h1>
                 <p class="mt-1 text-sm text-stone-500">
-                    {{ $attempt->assignment->applicant->title_th }}{{ $attempt->assignment->applicant->first_name_th }} {{ $attempt->assignment->applicant->last_name_th }}
+                    {{ $attempt->assignment->applicant->full_name_th }}
                 </p>
             </div>
         </div>

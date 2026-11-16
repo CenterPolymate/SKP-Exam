@@ -1,14 +1,21 @@
 <?php
 
 use App\Http\Controllers\ExamAttemptController;
+use App\Http\Controllers\PolicyConsentController;
 use App\Http\Controllers\SecureFileController;
+use App\Http\Middleware\EnsurePolicyAccepted;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
 
-Volt::route('/apply', 'pages.application.personal-background')
+// ยินยอมนโยบายคุ้มครองข้อมูลส่วนบุคคลจาก modal หน้าแรก แล้วจึงเข้าหน้ากรอกใบสมัครได้
+Route::post('/apply/consent', PolicyConsentController::class)
     ->middleware('throttle:30,1')
+    ->name('application.consent');
+
+Volt::route('/apply', 'pages.application.personal-background')
+    ->middleware(['throttle:30,1', EnsurePolicyAccepted::class])
     ->name('application.create');
 
 Volt::route('dashboard', 'pages.admin.dashboard')

@@ -193,7 +193,7 @@ new #[Layout('layouts.admin')] class extends Component
                     @forelse ($this->applicants as $applicant)
                         @php $meta = $this->reviewStatusMeta($applicant->status); @endphp
                         <tr class="text-stone-700">
-                            <td class="px-5 py-3 font-medium text-stone-900">{{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}</td>
+                            <td class="px-5 py-3 font-medium text-stone-900">{{ $applicant->full_name_th }}</td>
                             <td class="px-5 py-3">{{ $applicant->position->title ?? '-' }}</td>
                             <td class="px-5 py-3">{{ $this->thaiDate($this->submittedAt($applicant)) }}</td>
                             <td class="px-5 py-3">

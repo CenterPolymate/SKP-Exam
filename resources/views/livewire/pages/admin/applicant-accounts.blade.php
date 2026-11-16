@@ -327,7 +327,7 @@ new #[Layout('layouts.admin')] class extends Component
                     @forelse ($this->applicants as $applicant)
                         @php $status = $this->accountStatusMeta($applicant->status); @endphp
                         <tr class="text-stone-700">
-                            <td class="px-5 py-3 font-medium text-stone-900">{{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}</td>
+                            <td class="px-5 py-3 font-medium text-stone-900">{{ $applicant->full_name_th }}</td>
                             <td class="px-5 py-3">{{ $applicant->position->title ?? '-' }}</td>
                             <td class="px-5 py-3">{{ $this->thaiDate($applicant->reviewed_at) }}</td>
                             <td class="px-5 py-3">
@@ -397,7 +397,7 @@ new #[Layout('layouts.admin')] class extends Component
                 @if (! $generatedResult)
                     <h3 class="text-lg font-semibold text-stone-900">สร้างรหัสเข้าสอบ</h3>
                     <p class="mt-1 text-sm text-stone-500">
-                        {{ $genApplicant->title_th }}{{ $genApplicant->first_name_th }} {{ $genApplicant->last_name_th }}
+                        {{ $genApplicant->full_name_th }}
                         &middot; {{ $genApplicant->position->title ?? '-' }}
                     </p>
 
@@ -460,7 +460,7 @@ new #[Layout('layouts.admin')] class extends Component
                         <h3 class="text-lg font-semibold text-stone-900">สร้างรหัสเข้าสอบสำเร็จ</h3>
                     </div>
                     <p class="mt-1 text-sm text-stone-500">
-                        สร้างบัญชีเข้าสอบให้ <span class="font-medium text-stone-700">{{ $genApplicant->title_th }}{{ $genApplicant->first_name_th }} {{ $genApplicant->last_name_th }}</span> แล้ว
+                        สร้างบัญชีเข้าสอบให้ <span class="font-medium text-stone-700">{{ $genApplicant->full_name_th }}</span> แล้ว
                     </p>
 
                     <div class="mt-4 space-y-3" x-data="{ copied: null }">
@@ -532,7 +532,7 @@ new #[Layout('layouts.admin')] class extends Component
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
                 <h3 class="text-lg font-semibold text-stone-900">รายละเอียดบัญชีเข้าสอบ</h3>
                 <p class="mt-1 text-sm text-stone-500">
-                    {{ $viewApplicant->title_th }}{{ $viewApplicant->first_name_th }} {{ $viewApplicant->last_name_th }}
+                    {{ $viewApplicant->full_name_th }}
                     &middot; {{ $viewApplicant->position->title ?? '-' }}
                 </p>
 

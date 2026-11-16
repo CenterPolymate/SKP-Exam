@@ -86,7 +86,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                         </span>
                         <div>
                             <p class="font-semibold text-stone-900">
-                                {{ $assignment->applicant->title_th }}{{ $assignment->applicant->first_name_th }} {{ $assignment->applicant->last_name_th }}
+                                {{ $assignment->applicant->full_name_th }}
                             </p>
                             <p class="text-xs text-stone-400">
                                 APP-{{ str_pad($assignment->applicant->id, 6, '0', STR_PAD_LEFT) }} &middot; {{ $assignment->applicant->position->title ?? '-' }}
@@ -160,7 +160,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                 <div class="mt-6 space-y-2 rounded-xl border border-stone-200 p-4 text-left text-sm">
                     <div class="flex justify-between">
                         <span class="text-stone-400">ผู้สมัคร</span>
-                        <span class="font-medium text-stone-800">{{ $assignment->applicant->title_th }}{{ $assignment->applicant->first_name_th }} {{ $assignment->applicant->last_name_th }}</span>
+                        <span class="font-medium text-stone-800">{{ $assignment->applicant->full_name_th }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-stone-400">ตำแหน่ง</span>

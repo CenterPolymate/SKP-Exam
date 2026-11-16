@@ -22,6 +22,24 @@
                 x-data="{
                     panel: 'menu',
                     contactOpen: false,
+                    policyOpen: false,
+                    policyScrolled: false,
+                    policyAccepted: false,
+                    openPolicy() {
+                        this.policyAccepted = false;
+                        this.policyScrolled = false;
+                        this.policyOpen = true;
+                        this.$nextTick(() => { this.$refs.policyBody.scrollTop = 0; this.checkPolicyScroll(); });
+                    },
+                    closePolicy() { this.policyOpen = false; },
+                    checkPolicyScroll() {
+                        const el = this.$refs.policyBody;
+                        if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 8) { this.policyScrolled = true; }
+                    },
+                    acceptPolicy() {
+                        // ส่งฟอร์ม POST ไปบันทึกการยินยอมฝั่งเซิร์ฟเวอร์ แล้วเซิร์ฟเวอร์พาไปหน้า /apply
+                        if (this.policyAccepted) { this.$refs.consentForm.submit(); }
+                    },
                     lang: (localStorage.getItem('landingLang') === 'en') ? 'en' : 'th',
                     strings: {
                         th: {
@@ -38,6 +56,13 @@
                             contactUs: 'ติดต่อเรา',
                             close: 'ปิด',
                             phoneLabel: 'โทร (เจ้าหน้าที่ HR)',
+                            policyTitle: 'นโยบายคุ้มครองข้อมูลส่วนบุคคล',
+                            policyIntro: 'กรุณาอ่านนโยบายด้านล่างให้ครบถ้วนก่อนเริ่มกรอกใบสมัคร',
+                            policyLangNote: '',
+                            policyScrollHint: 'กรุณาเลื่อนอ่านจนถึงท้ายเอกสาร จึงจะสามารถยอมรับได้',
+                            policyAccept: 'ข้าพเจ้าได้อ่านและเข้าใจนโยบายคุ้มครองข้อมูลส่วนบุคคลข้างต้นแล้ว และยินยอมให้บริษัทเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้าตามนโยบายนี้',
+                            policyNext: 'ถัดไป',
+                            policyCancel: 'ยกเลิก',
                         },
                         en: {
                             docTitle: '{{ config('app.name', 'Grand SK') }} - Job Application System',
@@ -53,12 +78,19 @@
                             contactUs: 'Contact Us',
                             close: 'Close',
                             phoneLabel: 'Phone (HR Staff)',
+                            policyTitle: 'Personal Data Protection Policy',
+                            policyIntro: 'Please read the policy below in full before starting your application.',
+                            policyLangNote: 'Note: the official policy document is available in Thai only.',
+                            policyScrollHint: 'Please scroll to the end of the document to enable acceptance.',
+                            policyAccept: 'I have read and understood the Personal Data Protection Policy above, and I consent to the company collecting, using and disclosing my personal data in accordance with this policy.',
+                            policyNext: 'Next',
+                            policyCancel: 'Cancel',
                         },
                     },
                     t(key) { return this.strings[this.lang][key] ?? key; },
                     setLang(l) { this.lang = l; localStorage.setItem('landingLang', l); document.cookie = 'landingLang=' + l + '; path=/; max-age=31536000; samesite=lax'; document.title = this.t('docTitle'); },
                 }"
-                x-init="document.title = t('docTitle')"
+                x-init="document.title = t('docTitle'); @if (session('open_policy')) $nextTick(() => openPolicy()); @endif"
             >
 
                 {{-- Language switcher --}}
@@ -113,14 +145,14 @@
                         <p class="mt-1 text-sm text-stone-500" x-text="t('applicantsSub')"></p>
 
                         <div class="mt-6 flex flex-col gap-3">
-                            <a
-                                href="{{ route('application.create') }}"
-                                wire:navigate
+                            <button
+                                type="button"
+                                @click="openPolicy()"
                                 class="group flex items-center gap-3 rounded-lg border border-stone-200 px-4 py-3 text-left transition hover:border-amber-500 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                             >
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"></span>
                                 <span class="text-sm font-medium text-stone-700 group-hover:text-amber-700" x-text="t('applyBtn')"></span>
-                            </a>
+                            </button>
 
                             <button
                                 type="button"
@@ -175,6 +207,103 @@
                     <div class="mt-6 border-t border-stone-100 pt-4 text-xs text-stone-400">
                         <span x-text="t('needHelp')"></span>
                         <button type="button" @click="contactOpen = true" class="font-semibold text-stone-600 underline decoration-stone-300 underline-offset-2 hover:text-amber-700" x-text="t('contactUs')"></button>
+                    </div>
+                </div>
+
+                {{-- Privacy policy modal: ต้องเลื่อนอ่านจนจบและติ๊กยอมรับก่อนไปหน้ากรอกใบสมัคร --}}
+                <div
+                    x-show="policyOpen"
+                    x-cloak
+                    @keydown.escape.window="closePolicy()"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="policy-title"
+                    class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
+                >
+                    <div
+                        x-show="policyOpen"
+                        x-transition:enter="ease-out duration-200"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="ease-in duration-150"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        @click="closePolicy()"
+                        class="absolute inset-0 bg-stone-900/50"
+                    ></div>
+
+                    <div
+                        x-show="policyOpen"
+                        x-transition:enter="ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white text-left shadow-xl"
+                    >
+                        <div class="flex items-start justify-between gap-4 border-b border-stone-100 px-6 py-4">
+                            <div>
+                                <h3 id="policy-title" class="text-lg font-semibold text-amber-700" x-text="t('policyTitle')"></h3>
+                                <p class="mt-1 text-xs text-stone-500" x-text="t('policyIntro')"></p>
+                                <p class="mt-0.5 text-xs text-stone-400" x-show="t('policyLangNote') !== ''" x-text="t('policyLangNote')"></p>
+                            </div>
+                            <button
+                                type="button"
+                                @click="closePolicy()"
+                                class="shrink-0 rounded-full p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                                :aria-label="t('close')"
+                            >
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+                            </button>
+                        </div>
+
+                        <div
+                            x-ref="policyBody"
+                            @scroll.passive="checkPolicyScroll()"
+                            tabindex="0"
+                            class="min-h-0 flex-1 overflow-y-auto px-6 py-4 focus:outline-none"
+                        >
+                            @include('partials.privacy-policy-employee')
+                        </div>
+
+                        <div class="border-t border-stone-100 px-6 py-4">
+                            <p x-show="!policyScrolled" class="mb-3 text-xs text-amber-700" x-text="t('policyScrollHint')"></p>
+
+                            <label
+                                class="flex items-start gap-3 text-sm"
+                                :class="policyScrolled ? 'cursor-pointer text-stone-700' : 'cursor-not-allowed text-stone-400'"
+                            >
+                                <input
+                                    type="checkbox"
+                                    x-model="policyAccepted"
+                                    :disabled="!policyScrolled"
+                                    class="mt-0.5 rounded border-stone-300 text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                <span x-text="t('policyAccept')"></span>
+                            </label>
+
+                            <form x-ref="consentForm" method="POST" action="{{ route('application.consent') }}" class="hidden">
+                                @csrf
+                                <input type="hidden" name="policy_accepted" value="1">
+                            </form>
+
+                            <div class="mt-4 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    @click="closePolicy()"
+                                    class="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                                    x-text="t('policyCancel')"
+                                ></button>
+                                <button
+                                    type="button"
+                                    @click="acceptPolicy()"
+                                    :disabled="!policyAccepted"
+                                    class="rounded-lg bg-amber-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                                    x-text="t('policyNext')"
+                                ></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

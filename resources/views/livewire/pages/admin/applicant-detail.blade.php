@@ -66,7 +66,7 @@ new #[Layout('layouts.admin')] class extends Component
         <div class="mt-3 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <h1 class="text-2xl font-bold text-stone-900">
-                    {{ $applicant->title_th }}{{ $applicant->first_name_th }} {{ $applicant->last_name_th }}
+                    {{ $applicant->full_name_th }}
                 </h1>
                 <p class="mt-1 text-sm text-stone-500">
                     สมัครตำแหน่ง {{ $applicant->position->title ?? '-' }} &middot; ใบสมัครเลขที่ APP-{{ str_pad($applicant->id, 6, '0', STR_PAD_LEFT) }}
