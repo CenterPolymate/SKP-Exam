@@ -116,7 +116,7 @@ new #[Layout('layouts.admin')] class extends Component
         $yesNo = fn ($v) => is_null($v) ? '-' : ($v ? 'ใช่' : 'ไม่ใช่');
         $aliveLabel = fn ($v) => is_null($v) ? '-' : ($v ? 'มีชีวิตอยู่' : 'เสียชีวิตแล้ว');
         $fmtDate = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '-';
-        $tier = fn ($v) => is_null($v) ? '-' : ($v >= 4 ? 'ดีมาก' : ($v >= 2 ? 'ดี' : 'พอใช้'));
+        $tier = fn ($v) => \App\Support\LanguageLevel::format($v) ?: '-';
 
         $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ'];
         $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];

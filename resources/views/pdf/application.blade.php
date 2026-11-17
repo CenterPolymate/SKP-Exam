@@ -32,7 +32,7 @@
 
         .section-bar {
             background: #78350f; color: #ffffff; font-weight: bold; font-size: 11px;
-            padding: 4px 8px; margin-top: 8px;
+            padding: 4px 8px; margin-top: 8px; page-break-after: avoid;
         }
         .section-bar .en { font-weight: normal; font-size: 9px; color: #fde68a; }
 
@@ -88,17 +88,19 @@
         ];
         $val = fn ($v) => filled($v) ? $v : '';
         $fmtDate = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '';
+        $thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        $fmtThaiDate = function ($v) use ($thaiMonths) {
+            if (! $v) {
+                return '';
+            }
+            $d = \Illuminate\Support\Carbon::parse($v);
+
+            return $d->day.' '.$thaiMonths[$d->month - 1].' พ.ศ. '.($d->year + 543);
+        };
         $radio = fn ($active) => $active ? '[X]' : '[&nbsp;&nbsp;]'; // avoid unicode circle glyphs the Thai font may not have
         $documentsByType = $applicant->documents->keyBy('document_type');
         $photoDoc = $documentsByType->get('photo');
 
-        $tier = function ($v) {
-            if (is_null($v)) {
-                return null;
-            }
-
-            return $v >= 4 ? 'exc' : ($v >= 2 ? 'good' : 'fair');
-        };
     @endphp
 
     <h1 class="doc-title">ใบสมัครงาน</h1>
@@ -134,11 +136,22 @@
         <tr>
             <td style="width:75%;">
                 <div class="f-label" style="font-weight:bold; margin-bottom:3px;">หลักฐานประกอบการสมัครงาน / Supporting documents</div>
-                <table style="width:100%; border-collapse:collapse;">
-                    @foreach ($documentTypeLabels as $type => $label)
+                @php
+                    $docKeys = array_keys($documentTypeLabels);
+                    $docColumns = array_chunk($docKeys, (int) ceil(count($docKeys) / 2));
+                @endphp
+                <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+                    @foreach (array_keys($docColumns[0]) as $row)
                         <tr>
-                            <td style="border:none; padding:1px 2px; width:16px;">{!! $radio($documentsByType->has($type)) !!}</td>
-                            <td style="border:none; padding:1px 2px; font-size:9px;">{{ $label }}</td>
+                            @foreach ($docColumns as $column)
+                                @if (isset($column[$row]))
+                                    <td style="border:none; padding:1px 2px; width:7%; white-space:nowrap;">{!! $radio($documentsByType->has($column[$row])) !!}</td>
+                                    <td style="border:none; padding:1px 2px; width:43%; font-size:9px;">{{ $documentTypeLabels[$column[$row]] }}</td>
+                                @else
+                                    <td style="border:none; padding:1px 2px; width:7%;"></td>
+                                    <td style="border:none; padding:1px 2px; width:43%;"></td>
+                                @endif
+                            @endforeach
                         </tr>
                     @endforeach
                 </table>
@@ -161,111 +174,104 @@
 
     {{-- ================= ประวัติส่วนตัว ================= --}}
     <div class="section-bar">ประวัติส่วนตัว <span class="en">/ Personal Background</span></div>
-    <table class="fields">
-                    <tr>
-                        <td style="width:75%;">
-                            <div class="f-label">ชื่อ-สกุลภาษาไทย / Name (TH)</div>
-                            <div class="f-value">{{ $applicant->title_th }} {{ $applicant->first_name_th }} {{ $applicant->last_name_th }}</div>
-                        </td>
-                        <td style="width:25%;">
-                            <div class="f-label">เพศ / Sex</div>
-                            <div class="f-value">
-                                {!! $radio($applicant->gender === 'male') !!} ชาย
-                                &nbsp; {!! $radio($applicant->gender === 'female') !!} หญิง
-                                &nbsp; {!! $radio($applicant->gender === 'other') !!} ไม่ระบุเพศ
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <div class="f-label">ชื่อ-สกุลภาษาอังกฤษ / Name in English</div>
-                            <div class="f-value">{{ $applicant->title_en }} {{ $applicant->first_name_en }} {{ $applicant->last_name_en }} ({{ $applicant->nickname_en }})</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:25%;"><div class="f-label">วันเดือนปีเกิด / Date of Birth</div><div class="f-value">{{ $fmtDate($applicant->date_of_birth) }}</div></td>
-                        <td style="width:25%;"><div class="f-label">สัญชาติ / Nationality</div><div class="f-value">{{ $applicant->nationality }}</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">เชื้อชาติ / Race</div><div class="f-value">{{ $applicant->ethnicity }}</div></td>
-                        <td><div class="f-label">ศาสนา / Religion</div><div class="f-value">{{ $applicant->religion }}</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">อายุ / Age</div><div class="f-value">{{ $applicant->date_of_birth ? \Illuminate\Support\Carbon::parse($applicant->date_of_birth)->age.' ปี' : '' }}</div></td>
-                        <td><div class="f-label">ส่วนสูง / Height &nbsp;&nbsp; น้ำหนัก / Weight</div><div class="f-value">{{ $applicant->height_cm }} ซม. &nbsp; {{ $applicant->weight_kg }} กก.</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">ภูมิลำเนา / Hometown</div><div class="f-value">{{ $applicant->hometown }}</div></td>
-                        <td><div class="f-label">โทรศัพท์ที่ติดต่อ / Telephone</div><div class="f-value">{{ $applicant->phone }}</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">Line ID / Facebook ID</div><div class="f-value">{{ $applicant->line_id }} / {{ $applicant->facebook }}</div></td>
-                        <td><div class="f-label">E-mail</div><div class="f-value">{{ $applicant->email }}</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">Instagram / Twitter</div><div class="f-value">{{ $applicant->instagram }} / {{ $applicant->twitter }}</div></td>
-                        <td>
-                            <div class="f-label">ประวัติหมิ่นพระมหากษัตริย์ / Anti monarch record</div>
-                            <div class="f-value">{!! $radio($applicant->has_lese_majeste_record) !!} มี &nbsp; {!! $radio(! $applicant->has_lese_majeste_record) !!} ไม่มี</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"><div class="f-label">ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก / Present Address</div><div class="f-value">{{ $applicant->current_address }}</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">บัตรประชาชนเลขที่ / I.D. Card No.</div><div class="f-value">{{ $applicant->national_id_number }}</div></td>
-                        <td><div class="f-label">วันออกบัตร / บัตรหมดอายุ</div><div class="f-value">{{ $fmtDate($applicant->id_issue_date) }} - {{ $fmtDate($applicant->id_expiry_date) }}</div></td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <div class="f-label">สถานะความเป็นอยู่ / Living Status</div>
-                            <div class="f-value">
-                                {!! $radio($applicant->living_status === 'own_home') !!} บ้านส่วนตัว
-                                &nbsp; {!! $radio($applicant->living_status === 'rent_home') !!} บ้านเช่า
-                                &nbsp; {!! $radio($applicant->living_status === 'with_parents') !!} อาศัยบิดามารดา
-                                &nbsp; {!! $radio($applicant->living_status === 'with_other') !!} อาศัยอยู่กับผู้อื่น
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <div class="f-label">สถานะครอบครัว / Marital Status</div>
-                            <div class="f-value">
-                                {!! $radio($applicant->marital_status === 'single') !!} โสด
-                                &nbsp; {!! $radio($applicant->marital_status === 'married') !!} แต่งงาน
-                                &nbsp; {!! $radio($applicant->marital_status === 'divorced') !!} หย่า
-                                &nbsp; {!! $radio($applicant->marital_status === 'widowed') !!} หม้าย
-                                &nbsp; {!! $radio($applicant->marital_status === 'separated') !!} แยกกันอยู่
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="f-label">กรณีแต่งงาน / If Married</div>
-                            <div class="f-value">
-                                {!! $radio($applicant->marriage_registered === true) !!} จดทะเบียน
-                                &nbsp; {!! $radio($applicant->marriage_registered === false) !!} ไม่ได้จด
-                            </div>
-                        </td>
-                        <td><div class="f-label">ชื่อคู่สมรส / จำนวนบุตร</div><div class="f-value">{{ $applicant->spouse_name }} &nbsp; ({{ $applicant->children_count ?? 0 }} คน)</div></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="f-label">ชื่อบิดา / Name of Father</div>
-                            <div class="f-value">{{ $applicant->father_name }} {{ $applicant->father_age ? '('.$applicant->father_age.' ปี)' : '' }} {{ $applicant->father_occupation }}
-                                &nbsp; {!! $radio($applicant->father_alive === true) !!} มีชีวิต {!! $radio($applicant->father_alive === false) !!} ถึงแก่กรรม</div>
-                        </td>
-                        <td>
-                            <div class="f-label">ชื่อมารดา / Name of Mother</div>
-                            <div class="f-value">{{ $applicant->mother_name }} {{ $applicant->mother_age ? '('.$applicant->mother_age.' ปี)' : '' }} {{ $applicant->mother_occupation }}
-                                &nbsp; {!! $radio($applicant->mother_alive === true) !!} มีชีวิต {!! $radio($applicant->mother_alive === false) !!} ถึงแก่กรรม</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><div class="f-label">จำนวนพี่น้อง (รวมท่านด้วย) / ท่านเป็นคนที่</div><div class="f-value">{{ $applicant->siblings_count }} คน / คนที่ {{ $applicant->birth_order }}</div></td>
-                        <td><div class="f-label">สถานะทางทหาร / Military Service</div><div class="f-value">{{ $militaryStatusLabels[$applicant->military_status] ?? '' }}</div></td>
-                    </tr>
-                </table>
+    <table class="fields" style="table-layout:fixed;">
+        <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
+        {{-- ชื่อ --}}
+        <tr>
+            <td colspan="2">
+                <div class="f-label">ชื่อ-สกุลภาษาไทย / Name (TH)</div>
+                <div class="f-value">{{ $applicant->full_name_th }}</div>
+            </td>
+            <td colspan="2">
+                <div class="f-label">ชื่อ-สกุลภาษาอังกฤษ / Name in English</div>
+                <div class="f-value">{{ $applicant->title_en }} {{ $applicant->first_name_en }} {{ $applicant->last_name_en }} ({{ $applicant->nickname_en }})</div>
+            </td>
+        </tr>
+        {{-- ข้อมูลทั่วไป --}}
+        <tr>
+            <td>
+                <div class="f-label">เพศ / Sex</div>
+                <div class="f-value">
+                    {{ $genderLabels[$applicant->gender] ?? '' }}
+                </div>
+            </td>
+            <td><div class="f-label">วันเดือนปีเกิด / Date of Birth</div><div class="f-value">{{ $fmtDate($applicant->date_of_birth) }}</div></td>
+            <td><div class="f-label">อายุ / Age</div><div class="f-value">{{ $applicant->date_of_birth ? \Illuminate\Support\Carbon::parse($applicant->date_of_birth)->age.' ปี' : '' }}</div></td>
+            <td><div class="f-label">สัญชาติ / Nationality</div><div class="f-value">{{ $applicant->nationality }}</div></td>
+        </tr>
+        <tr>
+            <td><div class="f-label">เชื้อชาติ / Race</div><div class="f-value">{{ $applicant->ethnicity }}</div></td>
+            <td><div class="f-label">ศาสนา / Religion</div><div class="f-value">{{ $applicant->religion }}</div></td>
+            <td><div class="f-label">ส่วนสูง / Height</div><div class="f-value">{{ $applicant->height_cm }} ซม.</div></td>
+            <td><div class="f-label">น้ำหนัก / Weight</div><div class="f-value">{{ $applicant->weight_kg }} กก.</div></td>
+        </tr>
+        {{-- ช่องทางติดต่อ --}}
+        <tr>
+            <td><div class="f-label">ภูมิลำเนา / Hometown</div><div class="f-value">{{ $applicant->hometown }}</div></td>
+            <td><div class="f-label">โทรศัพท์ที่ติดต่อ / Telephone</div><div class="f-value">{{ $applicant->phone }}</div></td>
+            <td><div class="f-label">E-mail</div><div class="f-value">{{ $applicant->email }}</div></td>
+            <td><div class="f-label">Line ID</div><div class="f-value">{{ $applicant->line_id }}</div></td>
+        </tr>
+        <tr>
+            <td><div class="f-label">Facebook ID</div><div class="f-value">{{ $applicant->facebook }}</div></td>
+            <td><div class="f-label">Instagram</div><div class="f-value">{{ $applicant->instagram }}</div></td>
+            <td><div class="f-label">Twitter</div><div class="f-value">{{ $applicant->twitter }}</div></td>
+            <td>
+                <div class="f-label">ประวัติหมิ่นพระมหากษัตริย์ / Anti monarch record</div>
+                <div class="f-value">{{ $applicant->has_lese_majeste_record ? 'มี' : 'ไม่มี' }}</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4"><div class="f-label">ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก / Present Address</div><div class="f-value">{{ $applicant->current_address }}</div></td>
+        </tr>
+        {{-- บัตรประชาชน --}}
+        <tr>
+            <td><div class="f-label">บัตรประชาชนเลขที่ / I.D. Card No.</div><div class="f-value">{{ $applicant->national_id_number }}</div></td>
+            <td><div class="f-label">วันออกบัตร / Issue date</div><div class="f-value">{{ $fmtDate($applicant->id_issue_date) }}</div></td>
+            <td><div class="f-label">บัตรหมดอายุ / Expiry date</div><div class="f-value">{{ $fmtDate($applicant->id_expiry_date) }}</div></td>
+            <td><div class="f-label">สถานะทางทหาร / Military Service</div><div class="f-value">{{ $militaryStatusLabels[$applicant->military_status] ?? '' }}</div></td>
+        </tr>
+        {{-- ครอบครัว --}}
+        <tr>
+            <td colspan="3">
+                <div class="f-label">สถานะความเป็นอยู่ / Living Status</div>
+                <div class="f-value">
+                    {{ $livingStatusLabels[$applicant->living_status] ?? '' }}
+                </div>
+            </td>
+            <td>
+                <div class="f-label">จำนวนพี่น้อง (รวมท่านด้วย) / ท่านเป็นคนที่</div>
+                <div class="f-value">{{ $applicant->siblings_count }} คน / คนที่ {{ $applicant->birth_order }}</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="f-label">สถานะครอบครัว / Marital Status</div>
+                <div class="f-value">
+                    {{ $maritalStatusLabels[$applicant->marital_status] ?? '' }}
+                </div>
+            </td>
+            <td>
+                <div class="f-label">กรณีแต่งงาน / If Married</div>
+                <div class="f-value">
+                    {{ $applicant->marriage_registered === true ? 'จดทะเบียน' : ($applicant->marriage_registered === false ? 'ไม่ได้จด' : '') }}
+                </div>
+            </td>
+            <td><div class="f-label">ชื่อคู่สมรส / จำนวนบุตร</div><div class="f-value">{{ $applicant->spouse_name }}@if ($applicant->children_count !== null) &nbsp; ({{ $applicant->children_count }} คน)@endif</div></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="f-label">ชื่อบิดา / Name of Father</div>
+                <div class="f-value">{{ $applicant->father_name }} {{ $applicant->father_age ? '('.$applicant->father_age.' ปี)' : '' }} {{ $applicant->father_occupation }}
+                    &nbsp; {{ $applicant->father_alive === true ? 'มีชีวิต' : ($applicant->father_alive === false ? 'ถึงแก่กรรม' : '') }}</div>
+            </td>
+            <td colspan="2">
+                <div class="f-label">ชื่อมารดา / Name of Mother</div>
+                <div class="f-value">{{ $applicant->mother_name }} {{ $applicant->mother_age ? '('.$applicant->mother_age.' ปี)' : '' }} {{ $applicant->mother_occupation }}
+                    &nbsp; {{ $applicant->mother_alive === true ? 'มีชีวิต' : ($applicant->mother_alive === false ? 'ถึงแก่กรรม' : '') }}</div>
+            </td>
+        </tr>
+    </table>
 
     {{-- ================= ประวัติการศึกษา ================= --}}
     <div class="section-bar">ประวัติการศึกษา <span class="en">/ Educational Background</span></div>
@@ -296,16 +302,11 @@
     <div class="section-bar">ภาษา <span class="en">/ Languages</span></div>
     <table class="grid-table">
                     <tr>
-                        <th rowspan="2" style="width:12%;">ประเภทภาษา<br>Type</th>
-                        <th colspan="3">การพูด Speaking</th>
-                        <th colspan="3">การเข้าใจ Understanding</th>
-                        <th colspan="3">การอ่าน Reading</th>
-                        <th colspan="3">การเขียน Writing</th>
-                    </tr>
-                    <tr>
-                        @for ($i = 0; $i < 4; $i++)
-                            <th style="width:7.3%;">ดีมาก</th><th style="width:7.3%;">ดี</th><th style="width:7.3%;">พอใช้</th>
-                        @endfor
+                        <th style="width:20%;">ประเภทภาษา<br>Type</th>
+                        <th style="width:20%;">การพูด<br>Speaking</th>
+                        <th style="width:20%;">การเข้าใจ<br>Understanding</th>
+                        <th style="width:20%;">การอ่าน<br>Reading</th>
+                        <th style="width:20%;">การเขียน<br>Writing</th>
                     </tr>
                     @php $langBy = $applicant->languages->keyBy('language'); @endphp
                     @foreach (['thai', 'english', 'chinese', 'other'] as $langKey)
@@ -313,13 +314,12 @@
                         <tr>
                             <td class="left">{{ $langKey === 'other' && $lang ? $lang->custom_language_name : $languageLabels[$langKey] }}</td>
                             @foreach (['speaking_level', 'understanding_level', 'reading_level', 'writing_level'] as $skill)
-                                @php $t = $lang ? $tier($lang->$skill) : null; @endphp
-                                <td>{!! $radio($t === 'exc') !!}</td><td>{!! $radio($t === 'good') !!}</td><td>{!! $radio($t === 'fair') !!}</td>
+                                <td>{{ $lang ? \App\Support\LanguageLevel::format($lang->$skill) : '' }}</td>
                             @endforeach
                         </tr>
                     @endforeach
                     <tr>
-                        <td colspan="13" class="left">ใบรับรองด้านภาษา / Certificate of Language: &nbsp; {{ $applicant->language_certificate_note }}</td>
+                        <td colspan="5" class="left">ใบรับรองด้านภาษา / Certificate of Language: &nbsp; {{ $applicant->language_certificate_note }}</td>
                     </tr>
                 </table>
 
@@ -381,15 +381,15 @@
             <tr>
                 <td style="width:50%;">
                     <div class="f-label">ในตำแหน่งงานที่ต้องมีการค้ำประกัน / Can you provide a guarantor</div>
-                    <div class="f-value">{!! $radio($applicant->guarantor_required_ok === true) !!} ไม่ขัดข้อง (Yes) &nbsp; {!! $radio($applicant->guarantor_required_ok === false) !!} ขัดข้อง (No)</div>
+                    <div class="f-value">{{ $applicant->guarantor_required_ok === true ? 'ไม่ขัดข้อง (Yes)' : ($applicant->guarantor_required_ok === false ? 'ขัดข้อง (No)' : '') }}</div>
                 </td>
                 <td>
                     <div class="f-label">การเข้ากะมีความจำเป็นเฉพาะบางตำแหน่งงาน เช่น ผู้ควบคุมงานในไลน์ผลิต / Shift work is required only for certain positions, such as production line supervisors</div>
-                    <div class="f-value">{!! $radio($applicant->shift_work_ok === true) !!} ไม่ขัดข้อง (Yes) &nbsp; {!! $radio($applicant->shift_work_ok === false) !!} ขัดข้อง (No)</div>
+                    <div class="f-value">{{ $applicant->shift_work_ok === true ? 'ไม่ขัดข้อง (Yes)' : ($applicant->shift_work_ok === false ? 'ขัดข้อง (No)' : '') }}</div>
                 </td>
             </tr>
             <tr>
-                <td><div class="f-label">บุคคลในบริษัทฯ ที่ท่านรู้จักคุ้นเคยชื่อ / ความสัมพันธ์</div><div class="f-value">{{ $applicant->known_person_in_company }} / {{ $applicant->known_person_relation }}</div></td>
+                <td><div class="f-label">บุคคลในบริษัทฯ ที่ท่านรู้จักคุ้นเคยชื่อ / ความสัมพันธ์</div><div class="f-value">{{ filled($applicant->known_person_in_company) || filled($applicant->known_person_relation) ? (filled($applicant->known_person_in_company) ? $applicant->known_person_in_company : '-').' / '.(filled($applicant->known_person_relation) ? $applicant->known_person_relation : '-') : '' }}</div></td>
                 <td><div class="f-label">ท่านพร้อมที่จะปฏิบัติงานกับบริษัทฯ ได้ในวันที่</div><div class="f-value">{{ $fmtDate($applicant->available_start_date) }}</div></td>
             </tr>
             <tr>
@@ -418,51 +418,58 @@
     </div>
 
     <p class="decl">
+        <span style="font-weight:bold; color: {{ $applicant->data_accuracy_consent ? '#15803d' : '#dc2626' }};">[{{ $applicant->data_accuracy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]</span>
         ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริงทุกประการ หากข้อความตอนหนึ่งตอนใดไม่ตรงกับความเป็นจริง ข้าพเจ้าขอยอมรับว่าการว่าจ้างที่ตกลงนั้นเป็นอันโมฆะทันที
         และยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และการเป็นพนักงานของบริษัทได้
-        <span style="font-weight:bold; color: {{ $applicant->data_accuracy_consent ? '#15803d' : '#dc2626' }};">
-            [{{ $applicant->data_accuracy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]
-        </span>
     </p>
     <p class="decl">
+        <span style="font-weight:bold; color: {{ $applicant->privacy_policy_consent ? '#15803d' : '#dc2626' }};">[{{ $applicant->privacy_policy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]</span>
         ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคลสำหรับบุคลากรของบริษัท ข้าพเจ้ารับทราบและยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ
         ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และตลอดระยะเวลาการเป็นพนักงานของบริษัท
-        <span style="font-weight:bold; color: {{ $applicant->privacy_policy_consent ? '#15803d' : '#dc2626' }};">
-            [{{ $applicant->privacy_policy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]
-        </span>
     </p>
 
-    <table class="sig-table">
+    <table class="sig-table" style="table-layout:fixed;">
         <tr>
-            <td>
-                <div class="sig-line">วันที่ {{ $fmtDate($applicant->signed_at) }}</div>
+            <td style="width:25%; padding-top:0;"></td>
+            <td style="width:50%; padding-top:22px;">
+                <div style="font-size:10px; font-weight:bold; min-height:14px; padding-bottom:2px;">{{ $applicant->signature_name }}</div>
+                <div class="sig-line" style="width:100%;">
+                    ลงชื่อผู้สมัครงาน / Applicant's Signature
+                </div>
+                <div style="margin-top:3px;">วันที่ {{ $fmtThaiDate($applicant->signed_at) }}</div>
             </td>
-            <td>
-                <div class="sig-line">{{ $applicant->signature_name ?: '..............................................' }}</div>
-                ลงชื่อผู้สมัครงาน / Applicant's Signature
-            </td>
+            <td style="width:25%; padding-top:0;"></td>
         </tr>
     </table>
 
-    <div class="doc-title-2" style="text-align:center;">สำหรับเจ้าหน้าที่ฝ่ายทรัพยากรบุคคล</div>
-    <table class="fields">
-        <tr>
-            <td style="width:40%;">1. ตรวจสอบ Black List SKP</td>
-            <td>{!! $radio($applicant->hr_blacklist_checked === true) !!} ผ่าน &nbsp; {!! $radio($applicant->hr_blacklist_checked === false) !!} ไม่ผ่าน</td>
-        </tr>
-        <tr>
-            <td>2. ตรวจสอบประวัติการทำงาน</td>
-            <td>{!! $radio($applicant->hr_criminal_checked === true) !!} ผ่าน &nbsp; {!! $radio($applicant->hr_criminal_checked === false) !!} ไม่ผ่าน</td>
-        </tr>
-        <tr>
-            <td>3. ตรวจสอบทัศนคติ Social Network</td>
-            <td>{!! $radio($applicant->hr_social_checked === true) !!} ผ่าน &nbsp; {!! $radio($applicant->hr_social_checked === false) !!} ไม่ผ่าน</td>
-        </tr>
-        <tr>
-            <td>4. หมายเหตุ</td>
-            <td>{{ $applicant->hr_verification_note }}</td>
-        </tr>
+    @php
+        // ช่องสี่เหลี่ยมสำหรับติ๊กด้วยปากกา (วาดด้วย CSS เพราะฟอนต์อาจไม่มีสัญลักษณ์ ☐) — ถ้ามีค่าอยู่แล้วจะแสดง X
+        $box = fn ($active) => '<span style="display:inline-block; width:9px; height:9px; border:1px solid #1c1917; margin-right:3px; font-size:7px; line-height:8px; text-align:center; font-weight:bold;">'.($active ? 'X' : '&nbsp;').'</span>';
+        $hrRows = [
+            ['label' => 'ตรวจสอบ Black List SKP', 'value' => $applicant->hr_blacklist_checked, 'hasNone' => false, 'reason' => ''],
+            ['label' => 'ตรวจสอบประวัติการทำงาน', 'value' => $applicant->hr_criminal_checked, 'hasNone' => true, 'reason' => ''],
+            ['label' => 'ตรวจสอบทัศนคติ Social Network', 'value' => $applicant->hr_social_checked, 'hasNone' => true, 'reason' => ''],
+            ['label' => 'อื่นๆ', 'value' => null, 'hasNone' => true, 'reason' => (string) $applicant->hr_verification_note],
+        ];
+    @endphp
+    <div style="border:1px solid #44403c; margin-top:10px;">
+    <div style="text-align:center; font-weight:bold; font-size:11px; color:#78350f; padding:4px 0; border-bottom:1px solid #44403c;">สำหรับเจ้าหน้าที่ฝ่ายทรัพยากรบุคคล</div>
+    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+        @foreach ($hrRows as $i => $row)
+            <tr>
+                <td style="padding:5px 2px 3px 6px; text-align:left; width:4%;">{{ $i + 1 }}</td>
+                <td style="padding:5px 2px 3px 2px; width:32%;">{{ $row['label'] }}</td>
+                <td style="padding:5px 2px 3px 2px; white-space:nowrap; width:10%;">@if ($row['hasNone']){!! $box(false) !!}ไม่มี @endif</td>
+                <td style="padding:5px 2px 3px 2px; white-space:nowrap; width:9%;">{!! $box($row['value'] === true) !!}ผ่าน</td>
+                <td style="padding:5px 2px 3px 2px; white-space:nowrap; width:11%;">{!! $box($row['value'] === false) !!}ไม่ผ่าน</td>
+                <td style="padding:5px 2px 3px 2px; white-space:nowrap; width:8%;">เหตุผล</td>
+                <td style="padding:5px 6px 3px 2px; border-bottom:1px dotted #44403c; font-size:9px; width:26%;">{{ $row['reason'] }}</td>
+            </tr>
+        @endforeach
+        <tr><td colspan="7" style="height:6px;"></td></tr>
     </table>
+    </div>
+    <div style="text-align:right; margin-top:14px; font-size:9.5px;">ลงชื่อ......................................................เจ้าหน้าที่</div>
 
     <div class="footer-note">
         เลขที่ใบสมัคร APP-{{ str_pad($applicant->id, 6, '0', STR_PAD_LEFT) }} · เอกสารนี้สร้างโดยระบบอัตโนมัติจากข้อมูลที่ผู้สมัครกรอกผ่านเว็บไซต์ Grand SK เมื่อ {{ now()->format('d/m/Y H:i') }} น. · FS-A21-001

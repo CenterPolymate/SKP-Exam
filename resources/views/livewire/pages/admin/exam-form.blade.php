@@ -320,6 +320,12 @@ new #[Layout('layouts.admin')] class extends Component
 
         <h1 class="mt-3 text-2xl font-bold text-stone-900">{{ $exam ? 'แก้ไขข้อสอบ' : 'สร้างข้อสอบใหม่' }}</h1>
 
+        @if (session('status'))
+            <div class="mt-3 rounded-lg bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                {{ session('status') }}
+            </div>
+        @endif
+
         <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[340px_1fr]">
             {{-- Left: exam settings --}}
             <div class="h-fit rounded-2xl bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.06)] ring-1 ring-black/5">

@@ -27,9 +27,7 @@
         'bachelor' => $t('ปริญญาตรี', 'Bachelor Degree'), 'master' => $t('ปริญญาโท', 'Master Degree'), 'other' => $t('อื่นๆ', 'Other'),
     ];
     $languageLabels = ['thai' => $t('ไทย', 'Thai'), 'english' => $t('อังกฤษ', 'English'), 'chinese' => $t('จีน', 'Chinese'), 'other' => $t('อื่นๆ', 'Other')];
-    $languageTier = fn ($v) => $locale === null
-        ? ($v >= 4 ? 'ดีมาก (Excellent)' : ($v >= 2 ? 'ดี (Good)' : 'พอใช้ (Fair)'))
-        : ($v >= 4 ? $t('ดีมาก', 'Excellent') : ($v >= 2 ? $t('ดี', 'Good') : $t('พอใช้', 'Fair')));
+    $languageTier = fn ($v) => \App\Support\LanguageLevel::format($v, $locale === null ? 'both' : ($locale === 'en' ? 'en' : 'th'));
     $documentTypeLabels = [
         'photo' => $t('รูปถ่ายหน้าตรง 1 นิ้ว', 'One 1-inch photograph'), 'education_certificate' => $t('ใบรับรองการศึกษา', 'Educational Certificate'),
         'house_registration' => $t('สำเนาทะเบียนบ้าน', 'Copy of House Registration'), 'id_card_copy' => $t('สำเนาบัตรประชาชน', 'Copy of National ID Card'),

@@ -213,6 +213,31 @@ new #[Layout('layouts.exam-app')] class extends Component
 <div class="min-h-screen select-none bg-[#FAF3E7] pb-16" x-data="{
         remaining: {{ max(0, $deadlineTimestamp - now()->timestamp) }},
         busy: false,
+        leftPage: false,
+        tabSwitches: {{ (int) $attempt->suspicious_activity_count }},
+        // ถูกเรียกจาก @visibilitychange.document ที่ root element — Alpine จะถอด listener เองเมื่อ component ถูกทำลาย
+        // (เดิมใช้ document.addEventListener ใน x-init ซึ่งไม่ถูกถอดตอนเปลี่ยนหน้าแบบ wire:navigate ทำให้นับซ้ำได้)
+        onVisibilityChange() {
+            if (document.hidden) {
+                this.leftPage = true;
+                this.tabSwitches++;
+                this.reportSuspicious('tab_switch');
+                return;
+            }
+
+            // กลับมาที่หน้าข้อสอบหลังเคยออกไป → แจ้งเตือน
+            if (this.leftPage) {
+                this.leftPage = false;
+                this.openTabWarning();
+            }
+        },
+        openTabWarning() {
+            // ใช้ style.display ตรงๆ เหมือน submit modal (ดูหมายเหตุที่ openSubmitModal)
+            document.getElementById('tab-switch-warning-modal').style.display = 'flex';
+        },
+        closeTabWarning() {
+            document.getElementById('tab-switch-warning-modal').style.display = 'none';
+        },
         call(method, ...args) {
             if (this.busy) return;
             this.busy = true;
@@ -270,10 +295,8 @@ new #[Layout('layouts.exam-app')] class extends Component
             }).catch(() => {});
         }
     }"
-    x-init="
-        setInterval(() => tick(), 1000);
-        document.addEventListener('visibilitychange', () => { if (document.hidden) reportSuspicious('tab_switch'); });
-    "
+    x-init="setInterval(() => tick(), 1000);"
+    @visibilitychange.document="onVisibilityChange()"
     @copy="blockCopyLikeEvent($event)"
     @cut="blockCopyLikeEvent($event)"
     @contextmenu="blockCopyLikeEvent($event)"
@@ -450,6 +473,39 @@ new #[Layout('layouts.exam-app')] class extends Component
                     ยืนยันส่งคำตอบ
                 </button>
             </div>
+        </div>
+    </div>
+
+    {{-- Tab-switch warning modal: แสดงเมื่อผู้สอบสลับแท็บ/หน้าต่างแล้วกลับมาที่หน้าข้อสอบ
+         (toggle ด้วย style.display เช่นเดียวกับ modal ด้านบน; z-[60] ให้อยู่เหนือ submit modal) --}}
+    <div
+        id="tab-switch-warning-modal"
+        style="display: none;"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="tab-switch-warning-title"
+        class="fixed inset-0 z-[60] items-center justify-center bg-black/50 px-4"
+    >
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div class="flex justify-center">
+                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </span>
+            </div>
+            <h3 id="tab-switch-warning-title" class="mt-4 text-center text-lg font-semibold text-stone-900">ท่านออกจากหน้าทำข้อสอบ</h3>
+            <p class="mt-2 text-center text-sm text-stone-600">
+                ระบบตรวจพบว่าท่านสลับไปแท็บหรือหน้าต่างอื่นระหว่างทำข้อสอบ
+                (ครั้งที่ <span class="font-bold text-amber-700" x-text="tabSwitches"></span>)
+            </p>
+            <p class="mt-2 text-center text-sm text-stone-500">
+                พฤติกรรมนี้ถูกบันทึกไว้และทีมงาน HR สามารถเห็นได้ กรุณาอยู่ในหน้านี้จนกว่าจะส่งคำตอบ
+                เวลาในการทำข้อสอบยังคงนับต่อเนื่อง
+            </p>
+
+            <button type="button" @click="closeTabWarning()"
+                    class="mt-6 w-full rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-700">
+                รับทราบและทำข้อสอบต่อ
+            </button>
         </div>
     </div>
 </div>

@@ -42,7 +42,7 @@ new #[Layout('layouts.exam-app')] class extends Component
             <h1 class="mt-4 text-center text-xl font-bold text-stone-900">ก่อนเริ่มทำแบบทดสอบ</h1>
             <p class="mt-2 text-center text-sm text-stone-500">
                 สวัสดีคุณ{{ $assignment->applicant->first_name_th ?? '' }} ยินดีต้อนรับเข้าสู่ระบบทดสอบของ Grand SK<br>
-                ขอให้ทำแบบทดสอบด้วยความสบายใจ ไม่ต้องรีบเร่ง เราแค่อยากทำความรู้จักความสามารถของท่านตามจริง
+                ขอให้ท่านทำแบบทดสอบให้เต็มความสามารถเพื่อเราจะพิจารณาตำแหน่งงานที่ตรงกับความสามารถของคุณ
             </p>
 
             <div class="mt-6 rounded-xl bg-amber-50/60 p-5">

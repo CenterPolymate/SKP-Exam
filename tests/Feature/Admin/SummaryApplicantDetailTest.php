@@ -250,3 +250,45 @@ test('financial information fields are removed everywhere and the shift label us
     $reviewHtml = view('partials.applicant-review', ['a' => $applicant->fresh()->load(['position', 'education', 'languages', 'workHistories', 'references', 'documents'])])->render();
     expect($reviewHtml)->toContain($shiftLabel)->not->toContain('ทำงานเป็นกะหมุนเวียนได้');
 });
+
+test('pdf shows the number of children only when it was filled in', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+
+    $blank = makeFullApplicant(['spouse_name' => null, 'children_count' => null]);
+    $html = view('pdf.application', ['applicant' => $blank->load($relations)])->render();
+    expect($html)->not->toContain('คน)');
+
+    $filled = makeFullApplicant(['spouse_name' => 'สมหญิง', 'children_count' => 2]);
+    $html = view('pdf.application', ['applicant' => $filled->load($relations)])->render();
+    expect($html)->toContain('สมหญิง')->toContain('(2 คน)');
+
+    $zero = makeFullApplicant(['children_count' => 0]);
+    $html = view('pdf.application', ['applicant' => $zero->load($relations)])->render();
+    expect($html)->toContain('(0 คน)');
+});
+
+test('pdf footer: known person shows dash for the missing half, consent first, single signature with thai date', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $render = fn ($applicant) => view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+    $knownPerson = '/ความสัมพันธ์<\/div><div class="f-value">(.*?)<\/div>/su';
+
+    // ไม่กรอกทั้งสองช่อง: ไม่แสดงอะไร
+    preg_match($knownPerson, $render(makeFullApplicant()), $m);
+    expect(trim($m[1]))->toBe('');
+
+    // กรอกช่องเดียว: อีกช่องเป็น -
+    preg_match($knownPerson, $render(makeFullApplicant(['known_person_in_company' => 'สมศักดิ์'])), $m);
+    expect(trim($m[1]))->toBe('สมศักดิ์ / -');
+    preg_match($knownPerson, $render(makeFullApplicant(['known_person_relation' => 'เพื่อน'])), $m);
+    expect(trim($m[1]))->toBe('- / เพื่อน');
+
+    // ข้อความยินยอม: [ยอมรับแล้ว] อยู่หน้าข้อความ, ช่องเซ็นเดียว, วันที่ พ.ศ.
+    $html = $render(makeFullApplicant([
+        'data_accuracy_consent' => true, 'privacy_policy_consent' => true,
+        'signature_name' => 'ดร. นนทิวัฒน์ เพ็งพันธ์', 'signed_at' => '2026-11-17',
+    ]));
+    expect($html)->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าขอรับรองว่า/u')
+        ->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าได้อ่านนโยบาย/u')
+        ->toContain('วันที่ 17 พฤศจิกายน พ.ศ. 2569')
+        ->and(substr_count($html, "Applicant's Signature"))->toBe(1);
+});
