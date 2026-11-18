@@ -19,6 +19,8 @@ desktop.ini
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+# ไฟล์ asset ของแพ็กเกจที่ถูกสร้างโดย "php artisan vendor:publish --tag=laravel-assets" (ดู composer.json: post-update-cmd)
+/public/vendor
 /storage/*.key
 /storage/pail
 
