@@ -181,7 +181,13 @@ sudo crontab -u www-data -e
 ใช้สคริปต์ [`deploy.sh`](../deploy.sh) ทุกครั้ง **ห้ามพิมพ์คำสั่งทีละบรรทัดเอง** เพราะการข้ามขั้นตอนเป็นต้นเหตุของปัญหาที่เคยเจอ
 (route cache เก่า → `Route [...] not defined`, ลืม build/commit ไฟล์ frontend → CSS เก่า หน้าเว็บเพี้ยน, ไม่ได้ migrate → ฐานข้อมูลไม่ตรงกับโค้ด)
 
-### 5.0 ฝั่งเครื่อง dev ก่อน push (ทุกครั้งที่แก้หน้าเว็บ/สไตล์)
+### 5.0 สรุปการอัปเดตตามปกติ (อ่านส่วนนี้ส่วนเดียวก็พอ)
+1. **เครื่อง dev:** commit และ push ตามปกติ
+   - ถ้าแก้หน้าเว็บหรือสไตล์ (view, Tailwind, JS) ให้รัน `npm run check:build` และ `git add public/build` ก่อน commit
+2. **เซิร์ฟเวอร์:** `git pull --ff-only origin main` เท่านั้น (เมื่อตั้ง hook ตามหัวข้อ 5.3.1 แล้ว `deploy.sh` จะรันต่อให้อัตโนมัติ)
+   - ถ้ายังไม่ได้ตั้ง hook ให้รัน `./deploy.sh` ต่อจาก `git pull`
+
+### 5.0.1 ฝั่งเครื่อง dev ก่อน push (ทุกครั้งที่แก้หน้าเว็บ/สไตล์) (ทุกครั้งที่แก้หน้าเว็บ/สไตล์)
 เซิร์ฟเวอร์ไม่มี Node จึงไม่สามารถ build CSS/JS เองได้ ต้อง build บนเครื่อง dev แล้ว commit ไฟล์ใน `public/build/` ไปกับโค้ด:
 ```bash
 npm run check:build      # build ใหม่ แล้วตรวจว่าไฟล์ใน public/build ตรงกับที่ commit ไว้
@@ -217,6 +223,21 @@ chmod +x deploy.sh        # ครั้งเดียว ถ้าไฟล์
 git config --global --add safe.directory /var/www/skp-exam   # ถ้า git แจ้ง "dubious ownership"
 ```
 ผู้ที่รันสคริปต์ต้องเขียนไฟล์ในโปรเจกต์ได้ และสั่ง `sudo systemctl reload <php-fpm>` ได้ (ถ้าไม่ได้ สคริปต์จะเตือนให้รันเอง)
+
+### 5.3.1 ให้ `git pull` อย่างเดียวรัน deploy ต่อเอง (ตั้งครั้งเดียวต่อเซิร์ฟเวอร์)
+สร้าง git hook `post-merge` บนเซิร์ฟเวอร์ (ไฟล์อยู่ใน `.git/hooks` ไม่ถูกนับเป็นโค้ดโปรเจกต์ และไม่อยู่ใน git จึงต้องตั้งซ้ำเมื่อย้ายเซิร์ฟเวอร์หรือ clone ใหม่):
+```bash
+cd <โฟลเดอร์โปรเจกต์>
+cat > .git/hooks/post-merge <<'EOF'
+#!/usr/bin/env bash
+cd "$(git rev-parse --show-toplevel)"
+PHP_FPM_SERVICE="" ./deploy.sh
+EOF
+chmod +x .git/hooks/post-merge
+```
+- ตั้ง `PHP_FPM_SERVICE=""` เพื่อข้ามการ reload PHP-FPM (ต้องใช้รหัสผ่าน sudo ซึ่งอาจค้างใน hook) ถ้าอัปเดตแล้วยังเห็นของเก่า ให้รัน `sudo systemctl reload php8.4-fpm` เอง
+- ตรวจว่าตั้งแล้ว: `ls -l .git/hooks/post-merge` ต้องมีสิทธิ์ `x`
+- ถ้า deploy ล้มกลางทาง เว็บจะค้างในโหมดปิดปรับปรุง แก้ตามข้อความแล้วรัน `./deploy.sh` ซ้ำ หรือ `php artisan up`
 
 ### 5.4 ครั้งแรกบนเซิร์ฟเวอร์ที่ยังไม่มี `deploy.sh`
 เซิร์ฟเวอร์เก่ายังไม่มีไฟล์ `deploy.sh` ให้ทำด้วยมือครั้งเดียว แล้วต่อไปใช้สคริปต์:
