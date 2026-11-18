@@ -4,7 +4,7 @@
 #
 #   ./deploy.sh
 #
-# ลำดับ: ตรวจสถานะ → ปิดเว็บชั่วคราว → pull → composer → build assets → migrate → ล้าง/สร้าง cache → reload PHP-FPM → เปิดเว็บ
+# ลำดับ: ตรวจสถานะ → ปิดเว็บชั่วคราว → pull → composer → ตรวจ assets → migrate → ล้าง/สร้าง cache → reload PHP-FPM → เปิดเว็บ
 # ทุกขั้นตอนรันซ้ำได้ ถ้าล้มกลางทางให้แก้ปัญหาแล้วรันสคริปต์ซ้ำ
 #
 # ตัวแปรที่ปรับได้ (ตั้งก่อนรันคำสั่ง):
@@ -36,10 +36,6 @@ step "ตรวจสถานะ git"
 # ทั้งที่เนื้อหาไม่เปลี่ยน (แค่ mode 100644 → 100755) จึงให้ git ไม่นับ file mode ในรีโพนี้ (ตั้งซ้ำได้ ไม่มีผลข้างเคียงอื่น)
 git config core.fileMode false
 
-# ไฟล์ใน public/build เป็นผลจาก npm run build ไม่ใช่โค้ด — ถ้าเซิร์ฟเวอร์เก่ายังติดตามไว้ ให้คืนค่าก่อน pull
-# (ปลอดภัย: ไฟล์เหล่านี้ถูกสร้างใหม่ทุกครั้งด้วย npm run build ด้านล่าง) บรรทัดนี้ลบทิ้งได้เมื่อทุกเซิร์ฟเวอร์ pull เวอร์ชันที่เลิกติดตามแล้ว
-git checkout -- public/build 2>/dev/null || true
-
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
     echo "พบไฟล์ที่ถูกแก้บนเซิร์ฟเวอร์ (ห้ามแก้โค้ดบนเซิร์ฟเวอร์ ให้แก้ที่เครื่อง dev แล้ว push):"
     git status --short --untracked-files=no
@@ -58,11 +54,8 @@ NEW_COMMIT="$(git log -1 --format='%h %s')"
 step "ติดตั้ง PHP dependencies"
 composer install --no-dev --optimize-autoloader --no-interaction
 
-step "สร้าง frontend assets (CSS/JS)"
-npm ci --no-audit --no-fund
-npm run build
-
-# ตรวจว่า manifest ชี้ไปยังไฟล์ที่มีอยู่จริง (กันกรณี build ไม่สำเร็จแล้วยังใช้ไฟล์เก่า)
+step "ตรวจ frontend assets (CSS/JS ถูก build บนเครื่อง dev แล้วมากับ git — เซิร์ฟเวอร์นี้ไม่ต้องใช้ Node)"
+# ตรวจว่า manifest ชี้ไปยังไฟล์ที่มีอยู่จริง (กันกรณีลืม commit ไฟล์ใน public/build)
 "$PHP_BIN" -r '
 $manifest = json_decode(file_get_contents("public/build/manifest.json"), true);
 if (! $manifest) { fwrite(STDERR, "อ่าน public/build/manifest.json ไม่ได้\n"); exit(1); }

@@ -15,7 +15,7 @@
 - **ระบบจัดการฐานข้อมูล (Database)**: MySQL 8.0+ หรือ MariaDB 10.6+
 - **เครื่องมือจัดการแพ็กเกจ (Package Managers)**:
   - **Composer 2.x**
-  - **Node.js 20.x LTS** และ **npm**
+  - **Node.js 20.x LTS** และ **npm** — ใช้บน **เครื่อง dev** เพื่อ build CSS/JS เท่านั้น **ไม่จำเป็นบนเซิร์ฟเวอร์ production** (ไฟล์ที่ build แล้วมากับ git)
 - **ใบรับรองความปลอดภัย (SSL/TLS)**: บังคับใช้ HTTPS (เช่น Let's Encrypt Certbot) เนื่องจากระบบเกี่ยวข้องกับรหัสผ่านและเอกสารส่วนบุคคลของผู้สมัคร
 
 ---
@@ -34,9 +34,8 @@ cd /var/www/skp-exam
 # ติดตั้ง PHP Dependencies (ไม่รวมชุด Dev และทำ Autoload ให้เหมาะสมกับ Production)
 composer install --no-dev --optimize-autoloader
 
-# ติดตั้ง Node Dependencies และทำการคอมไพล์ Frontend Assets
-npm ci
-npm run build
+# Frontend Assets (CSS/JS) ถูก build บนเครื่อง dev แล้วเก็บใน git (โฟลเดอร์ public/build)
+# ไม่ต้องรัน npm บนเซิร์ฟเวอร์ — ดูกติกาในหัวข้อ 5.0–5.1
 ```
 
 ### 2.3 ตั้งค่าคอนฟิกสภาพแวดล้อม (`.env`)
@@ -180,11 +179,21 @@ sudo crontab -u www-data -e
 ## 5. ขั้นตอนการอัปเดตโค้ดเมื่อมีเวอร์ชันใหม่ (Deploy)
 
 ใช้สคริปต์ [`deploy.sh`](../deploy.sh) ทุกครั้ง **ห้ามพิมพ์คำสั่งทีละบรรทัดเอง** เพราะการข้ามขั้นตอนเป็นต้นเหตุของปัญหาที่เคยเจอ
-(route cache เก่า → `Route [...] not defined`, ไม่ได้ build → CSS เก่า หน้าเว็บเพี้ยน, ไม่ได้ migrate → ฐานข้อมูลไม่ตรงกับโค้ด)
+(route cache เก่า → `Route [...] not defined`, ลืม build/commit ไฟล์ frontend → CSS เก่า หน้าเว็บเพี้ยน, ไม่ได้ migrate → ฐานข้อมูลไม่ตรงกับโค้ด)
+
+### 5.0 ฝั่งเครื่อง dev ก่อน push (ทุกครั้งที่แก้หน้าเว็บ/สไตล์)
+เซิร์ฟเวอร์ไม่มี Node จึงไม่สามารถ build CSS/JS เองได้ ต้อง build บนเครื่อง dev แล้ว commit ไฟล์ใน `public/build/` ไปกับโค้ด:
+```bash
+npm run check:build      # build ใหม่ แล้วตรวจว่าไฟล์ใน public/build ตรงกับที่ commit ไว้
+git add public/build     # ถ้า check:build แจ้งว่ามีไฟล์ build เปลี่ยน/เพิ่ม
+git commit               # ใส่ไปพร้อมกับ commit ของฟีเจอร์ (หรือแยก commit "build assets")
+git push origin main
+```
+ถ้าลืมขั้นตอนนี้ เซิร์ฟเวอร์จะได้ CSS เก่า และหน้าที่ใช้คลาสสไตล์ใหม่จะเพี้ยน (เคยเกิดกับ modal นโยบาย PDPA)
 
 ### 5.1 กติกา
 1. **ห้ามแก้ไฟล์โค้ดบนเซิร์ฟเวอร์** แก้ที่เครื่อง dev แล้ว push เท่านั้น ค่าตั้งค่าเฉพาะเซิร์ฟเวอร์อยู่ใน `.env` (git ไม่ยุ่งกับไฟล์นี้)
-2. ไฟล์ใน `public/build/` (CSS/JS) **ไม่อยู่ใน git** ถูกสร้างบนเซิร์ฟเวอร์ด้วย `npm run build` ทุกครั้งหลัง pull
+2. ไฟล์ใน `public/build/` (CSS/JS) **ถูก build บนเครื่อง dev และเก็บใน git** ห้าม build หรือแก้ไฟล์เหล่านี้บนเซิร์ฟเวอร์ (จะทำให้ `git pull` ชน) ดูขั้นตอนในหัวข้อ 5.0
 3. **สำรองฐานข้อมูลก่อน deploy ทุกครั้งที่มี migration ใหม่** (เช่น `mysqldump skp_exam_prod > backup-$(date +%F).sql`)
 4. Deploy นอกเวลาทำการหรือช่วงที่มีผู้สอบน้อย เพราะเว็บจะถูกปิดปรับปรุงชั่วคราว
 
@@ -195,8 +204,8 @@ cd /var/www/skp-exam      # โฟลเดอร์ติดตั้งจร�
 ```
 ปรับค่าได้ด้วยตัวแปร เช่น `PHP_FPM_SERVICE=php8.3-fpm ./deploy.sh` (ดูรายการในหัวไฟล์ `deploy.sh`)
 
-สคริปต์ทำตามลำดับ: ตรวจสถานะ git → ปิดเว็บ (`artisan down`) → `git pull --ff-only` → `composer install` → `npm ci && npm run build`
-(พร้อมตรวจว่าไฟล์ build ครบ) → `migrate --force` → `optimize:clear` + `optimize` → reload PHP-FPM → เปิดเว็บ (`artisan up`)
+สคริปต์ทำตามลำดับ: ตรวจสถานะ git → ปิดเว็บ (`artisan down`) → `git pull --ff-only` → `composer install` → ตรวจว่าไฟล์ใน `public/build` ครบ
+→ `migrate --force` → `optimize:clear` + `optimize` → reload PHP-FPM → เปิดเว็บ (`artisan up`)
 
 - `migrate --force` เพิ่ม/แก้โครงสร้างตามไฟล์ migration ใหม่เท่านั้น ไม่รัน `migrate:fresh` และไม่ลบข้อมูล
 - ถ้ามีขั้นตอนล้ม สคริปต์จะ **คงโหมดปิดปรับปรุงไว้** และแจ้งสาเหตุ ให้แก้ปัญหาแล้วรัน `./deploy.sh` ซ้ำ (รันซ้ำได้ทุกขั้นตอน)
@@ -209,14 +218,17 @@ git config --global --add safe.directory /var/www/skp-exam   # ถ้า git แ
 ```
 ผู้ที่รันสคริปต์ต้องเขียนไฟล์ในโปรเจกต์ได้ และสั่ง `sudo systemctl reload <php-fpm>` ได้ (ถ้าไม่ได้ สคริปต์จะเตือนให้รันเอง)
 
-### 5.4 การเปลี่ยนผ่านครั้งแรก (เซิร์ฟเวอร์ที่เคย pull เวอร์ชันเก่า)
-เวอร์ชันเก่า git เคยติดตามไฟล์ใน `public/build/` ไว้ การ pull ครั้งแรกที่เลิกติดตามจะลบไฟล์เหล่านั้นออกชั่วคราว
-`deploy.sh` จัดการให้แล้ว (คืนค่าไฟล์ก่อน pull และ build ใหม่ทันทีหลัง pull) แต่ต้องใช้ `deploy.sh` ตัวใหม่ ถ้าเซิร์ฟเวอร์ยังไม่มีสคริปต์ ให้ทำครั้งเดียวด้วยมือ:
+### 5.4 ครั้งแรกบนเซิร์ฟเวอร์ที่ยังไม่มี `deploy.sh`
+เซิร์ฟเวอร์เก่ายังไม่มีไฟล์ `deploy.sh` ให้ทำด้วยมือครั้งเดียว แล้วต่อไปใช้สคริปต์:
 ```bash
-git checkout -- public/build      # คืนไฟล์ build เก่าที่อาจถูกแก้ ทำให้ pull ได้ (ปลอดภัย)
-git pull --ff-only origin main    # รับ deploy.sh และการเลิกติดตาม public/build
-./deploy.sh                       # จากนั้นใช้สคริปต์ตามปกติ
+cd <โฟลเดอร์โปรเจกต์>
+git config core.fileMode false          # ไม่นับการเปลี่ยนสิทธิ์ไฟล์ (ดูหัวข้อ 5.6)
+php artisan down --secret="skp-maintenance-bypass"
+git pull --ff-only origin main          # รับโค้ด + ไฟล์ public/build ใหม่ + deploy.sh
+chmod +x deploy.sh
+./deploy.sh
 ```
+ถ้า `git pull` แจ้งว่ามีไฟล์ถูกแก้ ให้ดูว่าเป็นไฟล์อะไร: ถ้าเป็นไฟล์ใน `public/build/` ที่ใครเคย build บนเซิร์ฟเวอร์ ให้ `git checkout -- public/build` (ปลอดภัย ไฟล์ที่ถูกต้องจะมากับ pull)
 
 ### 5.5 ตรวจหลัง deploy
 ```bash
@@ -249,7 +261,6 @@ git diff --stat               # ถ้ามีจำนวนบรรทัด
 ```bash
 git log --oneline -5              # หา commit ก่อนหน้าที่ใช้งานได้
 git checkout <commit-เดิม>         # ย้อนโค้ด (อยู่ในโหมด detached HEAD ชั่วคราว)
-npm ci && npm run build
 php artisan optimize:clear && php artisan optimize
 sudo systemctl reload php8.4-fpm
 ```
@@ -264,9 +275,9 @@ migration ที่เพิ่มคอลัมน์ใหม่ (nullable) �
 | :--- | :--- | :--- |
 | **Error 500 (White Screen)** | ยังไม่ได้ตั้งสิทธิ์โฟลเดอร์ `storage` หรือ `.env` มีปัญหา | ตรวจสอบ `chown -R www-data:www-data storage bootstrap/cache` และดู Log ใน `storage/logs/laravel.log` |
 | **ผู้สมัครอัปโหลดเอกสารไม่ได้** | ขีดจำกัดไฟล์ใน `php.ini` หรือ `nginx.conf` ต่ำเกินไป | ตรวจสอบ `upload_max_filesize = 25M` และ `post_max_size = 25M` ใน `php.ini` รวมถึง `client_max_body_size 25M;` ใน Nginx |
-| **เข้าหน้าเว็บแล้วขึ้น CSS ไม่ครบ** | ยังไม่ได้สั่ง build assets | รันคำสั่ง `npm run build` |
+| **เข้าหน้าเว็บแล้วขึ้น CSS ไม่ครบ** | ไฟล์ build ใน git ไม่ตรงกับโค้ดล่าสุด (ลืม build/commit `public/build` ก่อน push) | ที่เครื่อง dev รัน `npm run check:build`, `git add public/build`, commit และ push แล้ว pull/deploy ใหม่ |
 | **`Route [...] not defined` หลัง deploy** | route cache เก่า (`bootstrap/cache/routes-v7.php`) ที่สร้างก่อน pull | รัน `php artisan optimize:clear && php artisan optimize` แล้ว reload PHP-FPM (หรือรัน `./deploy.sh` ซ้ำ) |
-| **หน้าเว็บ/modal เพี้ยนหลัง deploy (CSS เก่า)** | ไม่ได้รัน `npm run build` หรือ build ไม่สำเร็จ | รัน `npm ci && npm run build` แล้วตรวจว่า `public/build/manifest.json` ชี้ไฟล์ CSS ใหม่ จากนั้นกด Ctrl+F5 |
+| **หน้าเว็บ/modal เพี้ยนหลัง deploy (CSS เก่า)** | เหมือนข้างบน: ไฟล์ใน `public/build` ที่ commit ไว้เป็นเวอร์ชันเก่า | ตรวจ `grep '"file"' public/build/manifest.json` เทียบกับเครื่อง dev แล้วทำตามแถวข้างบน |
 | **`git status` ขึ้น modified เป็นกลุ่มไฟล์ใน storage/ และ bootstrap/cache/** | file mode เปลี่ยน (execute bit) จาก `chmod -R 775` | ดูหัวข้อ 5.6: ตั้ง `git config core.fileMode false` ไม่ต้อง reset หรือ chmod เหมารวม |
 | **`git pull` แจ้ง local changes would be overwritten** | มีคนแก้ไฟล์บนเซิร์ฟเวอร์ | ดู `git status` ถ้าเป็นไฟล์ใน `public/build/` รัน `git checkout -- public/build` ถ้าเป็นไฟล์โค้ด ให้ส่งการแก้ไขนั้นกลับไปที่เครื่อง dev อย่าแก้บนเซิร์ฟเวอร์ |
 | **Composer แจ้งเตือน PHP version** | เซิร์ฟเวอร์ยังใช้งาน PHP ต่ำกว่า 8.4 | ตรวจสอบ `php -v` และใช้คำสั่งชี้ไปที่ binary PHP 8.4 โดยตรง |

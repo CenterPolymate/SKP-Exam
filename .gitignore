@@ -15,7 +15,8 @@ desktop.ini
 /.zed
 /auth.json
 /node_modules
-/public/build
+# หมายเหตุ: public/build (CSS/JS ที่ build แล้ว) ถูกเก็บใน git โดยตั้งใจ เพราะเซิร์ฟเวอร์ production ไม่มี Node
+# ต้องรัน "npm run check:build" และ commit ไฟล์ใน public/build ทุกครั้งที่แก้ view/CSS ก่อน push
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
