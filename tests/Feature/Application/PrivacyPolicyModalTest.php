@@ -8,7 +8,7 @@ test('landing page shows the privacy policy modal with the full policy before ap
         ->assertSee('นโยบายคุ้มครองข้อมูลส่วนบุคคลสำหรับพนักงาน')
         ->assertSee('QMR-GSK-039')
         ->assertSee('ข้อมูลส่วนบุคคลชนิดพิเศษ')
-        ->assertSee('wilailak@skthai.com')
+        ->assertDontSee('wilailak@skthai.com')
         ->assertSee('จบเอกสาร');
 
     // ปุ่มถัดไปถูกล็อกจนกว่าจะเลื่อนอ่านจบและติ๊กยอมรับ
