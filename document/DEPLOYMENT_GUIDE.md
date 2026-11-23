@@ -187,7 +187,7 @@ sudo crontab -u www-data -e
 2. **เซิร์ฟเวอร์:** `git pull --ff-only origin main` เท่านั้น (เมื่อตั้ง hook ตามหัวข้อ 5.3.1 แล้ว `deploy.sh` จะรันต่อให้อัตโนมัติ)
    - ถ้ายังไม่ได้ตั้ง hook ให้รัน `./deploy.sh` ต่อจาก `git pull`
 
-### 5.0.1 ฝั่งเครื่อง dev ก่อน push (ทุกครั้งที่แก้หน้าเว็บ/สไตล์) (ทุกครั้งที่แก้หน้าเว็บ/สไตล์)
+### 5.0.1 ฝั่งเครื่อง dev ก่อน push (ทุกครั้งที่แก้หน้าเว็บ/สไตล์)
 เซิร์ฟเวอร์ไม่มี Node จึงไม่สามารถ build CSS/JS เองได้ ต้อง build บนเครื่อง dev แล้ว commit ไฟล์ใน `public/build/` ไปกับโค้ด:
 ```bash
 npm run check:build      # build ใหม่ แล้วตรวจว่าไฟล์ใน public/build ตรงกับที่ commit ไว้

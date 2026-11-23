@@ -251,16 +251,19 @@ test('financial information fields are removed everywhere and the shift label us
     expect($reviewHtml)->toContain($shiftLabel)->not->toContain('ทำงานเป็นกะหมุนเวียนได้');
 });
 
-test('pdf shows the nickname in parentheses after the full name and hides empty parentheses', function () {
+test('pdf shows nicknames in their own columns, not in parentheses after the name', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
 
     $with = makeFullApplicant(['first_name_th' => 'กิตติทัศน์', 'last_name_th' => 'เจ็กสูงเนิน', 'nickname_th' => 'ปอ', 'nickname_en' => 'por']);
     $html = view('pdf.application', ['applicant' => $with->load($relations)])->render();
-    expect($html)->toContain('กิตติทัศน์ เจ็กสูงเนิน (ปอ)')->toContain('(por)');
+    expect($html)->toContain('กิตติทัศน์ เจ็กสูงเนิน')
+        ->toContain('Nickname (TH)')->toContain('ปอ')
+        ->toContain('Nickname (EN)')->toContain('por')
+        ->not->toContain('เจ็กสูงเนิน (ปอ)')->not->toContain('(por)');
 
     $without = makeFullApplicant(['nickname_th' => '', 'nickname_en' => '']);
     $html = view('pdf.application', ['applicant' => $without->load($relations)])->render();
-    expect($html)->not->toContain('()')->not->toContain('( )');
+    expect($html)->not->toContain('()')->not->toContain('( )')->toContain('Nickname (TH)');
 });
 
 test('pdf shows the number of children only when it was filled in', function () {

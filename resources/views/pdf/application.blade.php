@@ -178,13 +178,21 @@
         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
         {{-- ชื่อ --}}
         <tr>
-            <td colspan="2">
+            <td>
                 <div class="f-label">ชื่อ-สกุลภาษาไทย / Name (TH)</div>
-                <div class="f-value">{{ $applicant->full_name_th }}@if (filled($applicant->nickname_th)) ({{ $applicant->nickname_th }})@endif</div>
+                <div class="f-value">{{ $applicant->full_name_th }}</div>
             </td>
-            <td colspan="2">
+            <td>
+                <div class="f-label">ชื่อเล่น (ไทย) / Nickname (TH)</div>
+                <div class="f-value">{{ $applicant->nickname_th }}</div>
+            </td>
+            <td>
                 <div class="f-label">ชื่อ-สกุลภาษาอังกฤษ / Name in English</div>
-                <div class="f-value">{{ $applicant->title_en }} {{ $applicant->first_name_en }} {{ $applicant->last_name_en }}@if (filled($applicant->nickname_en)) ({{ $applicant->nickname_en }})@endif</div>
+                <div class="f-value">{{ trim($applicant->title_en.' '.$applicant->first_name_en.' '.$applicant->last_name_en) }}</div>
+            </td>
+            <td>
+                <div class="f-label">ชื่อเล่น (อังกฤษ) / Nickname (EN)</div>
+                <div class="f-value">{{ $applicant->nickname_en }}</div>
             </td>
         </tr>
         {{-- ข้อมูลทั่วไป --}}
