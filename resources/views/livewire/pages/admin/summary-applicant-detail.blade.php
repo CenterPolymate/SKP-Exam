@@ -308,7 +308,6 @@ new #[Layout('layouts.admin')] class extends Component
             'junior_high' => ['th' => 'มัธยมศึกษาตอนต้น', 'en' => 'Junior High School'],
             'senior_high_vocational_cert' => ['th' => 'มัธยมศึกษาตอนปลาย/ปวช.', 'en' => 'Senior High School / Vocational Certificate'],
             'diploma_high_vocational' => ['th' => 'อนุปริญญา/ปวส.', 'en' => 'Diploma / High Vocational Certificate'],
-            'vocational' => ['th' => 'วิชาชีพ', 'en' => 'Vocational'],
             'bachelor' => ['th' => 'ปริญญาตรี', 'en' => 'Bachelor Degree'],
             'master' => ['th' => 'ปริญญาโท', 'en' => 'Master Degree'],
             'other' => ['th' => 'อื่นๆ', 'en' => 'Other'],

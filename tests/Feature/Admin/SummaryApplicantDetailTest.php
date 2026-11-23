@@ -275,9 +275,32 @@ test('pdf shows the number of children only when it was filled in', function () 
         return trim($m[1] ?? 'NOT-FOUND');
     };
 
-    expect($childrenValue(makeFullApplicant(['spouse_name' => null, 'children_count' => null])))->toBe('')
+    expect($childrenValue(makeFullApplicant(['spouse_name' => null, 'children_count' => null])))->toBe('-')
         ->and($childrenValue(makeFullApplicant(['spouse_name' => 'สมหญิง', 'children_count' => 2])))->toBe('2 คน')
         ->and($childrenValue(makeFullApplicant(['children_count' => 0])))->toBe('0 คน');
+});
+
+test('pdf personal background shows a dash for every empty field', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $valueOf = function (string $label, $applicant) use ($relations): string {
+        $html = view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+        preg_match('/'.preg_quote($label, '/').'<\/div>\s*<div class="f-value">(.*?)<\/div>/s', $html, $m);
+
+        return trim($m[1] ?? 'NOT-FOUND');
+    };
+
+    $blank = makeFullApplicant(['line_id' => null, 'facebook' => null, 'instagram' => null, 'twitter' => null, 'height_cm' => null, 'weight_kg' => null, 'nickname_th' => '']);
+    expect($valueOf('Line ID', $blank))->toBe('-')
+        ->and($valueOf('Facebook ID', $blank))->toBe('-')
+        ->and($valueOf('Instagram', $blank))->toBe('-')
+        ->and($valueOf('Twitter', $blank))->toBe('-')
+        ->and($valueOf('Nickname (TH)', $blank))->toBe('-')
+        ->and($valueOf('Height', $blank))->toBe('-')
+        ->and($valueOf('Weight', $blank))->toBe('-');
+
+    $filled = makeFullApplicant(['line_id' => 'kitti_tnud', 'height_cm' => 175]);
+    expect($valueOf('Line ID', $filled))->toBe('kitti_tnud')
+        ->and($valueOf('Height', $filled))->toBe('175.0 ซม.');
 });
 
 test('pdf family section has one column each for spouse occupation and for father and mother details', function () {

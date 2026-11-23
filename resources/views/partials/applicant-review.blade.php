@@ -23,7 +23,7 @@
     ];
     $degreeLevelLabels = [
         'junior_high' => $t('มัธยมศึกษาตอนต้น', 'Junior High School'), 'senior_high_vocational_cert' => $t('มัธยมศึกษาตอนปลาย/ปวช.', 'Senior High School / Vocational Certificate'),
-        'diploma_high_vocational' => $t('อนุปริญญา/ปวส.', 'Diploma / High Vocational Certificate'), 'vocational' => $t('อาชีวศึกษา', 'Vocational'),
+        'diploma_high_vocational' => $t('อนุปริญญา/ปวส.', 'Diploma / High Vocational Certificate'),
         'bachelor' => $t('ปริญญาตรี', 'Bachelor Degree'), 'master' => $t('ปริญญาโท', 'Master Degree'), 'other' => $t('อื่นๆ', 'Other'),
     ];
     $languageLabels = ['thai' => $t('ไทย', 'Thai'), 'english' => $t('อังกฤษ', 'English'), 'chinese' => $t('จีน', 'Chinese'), 'other' => $t('อื่นๆ', 'Other')];

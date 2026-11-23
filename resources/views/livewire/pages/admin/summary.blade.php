@@ -123,7 +123,7 @@ new #[Layout('layouts.admin')] class extends Component
         $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยอยู่กับบิดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];
         $maritalStatusLabels = ['single' => 'โสด', 'married' => 'แต่งงาน', 'divorced' => 'หย่า', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่'];
         $militaryStatusLabels = ['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร'];
-        $degreeLevelLabels = ['junior_high' => 'มัธยมศึกษาตอนต้น', 'senior_high_vocational_cert' => 'มัธยมศึกษาตอนปลาย/ปวช.', 'diploma_high_vocational' => 'อนุปริญญา/ปวส.', 'vocational' => 'วิชาชีพ', 'bachelor' => 'ปริญญาตรี', 'master' => 'ปริญญาโท', 'other' => 'อื่นๆ'];
+        $degreeLevelLabels = ['junior_high' => 'มัธยมศึกษาตอนต้น', 'senior_high_vocational_cert' => 'มัธยมศึกษาตอนปลาย/ปวช.', 'diploma_high_vocational' => 'อนุปริญญา/ปวส.', 'bachelor' => 'ปริญญาตรี', 'master' => 'ปริญญาโท', 'other' => 'อื่นๆ'];
         $languageLabels = ['thai' => 'ไทย', 'english' => 'อังกฤษ', 'chinese' => 'จีน', 'other' => 'อื่นๆ'];
         $documentTypeLabels = [
             'photo' => 'รูปถ่ายหน้าตรง ขนาด 1 นิ้ว', 'education_certificate' => 'ใบรับรองการศึกษา',
@@ -353,7 +353,6 @@ new #[Layout('layouts.admin')] class extends Component
         return match ($level) {
             'master' => 6,
             'bachelor' => 5,
-            'vocational' => 4,
             'diploma_high_vocational' => 3,
             'senior_high_vocational_cert' => 2,
             'junior_high' => 1,
@@ -381,7 +380,6 @@ new #[Layout('layouts.admin')] class extends Component
         return match ($level) {
             'master' => 'ป.โท',
             'bachelor' => 'ป.ตรี',
-            'vocational' => 'อาชีวะ',
             'diploma_high_vocational' => 'ปวส.',
             'senior_high_vocational_cert' => 'ม.ปลาย/ปวช.',
             'junior_high' => 'ม.ต้น',
@@ -492,7 +490,6 @@ new #[Layout('layouts.admin')] class extends Component
                         <option value="">ทั้งหมด</option>
                         <option value="master">ป.โท</option>
                         <option value="bachelor">ป.ตรี</option>
-                        <option value="vocational">อาชีวะ</option>
                         <option value="diploma_high_vocational">ปวส.</option>
                         <option value="senior_high_vocational_cert">ม.ปลาย/ปวช.</option>
                         <option value="junior_high">ม.ต้น</option>

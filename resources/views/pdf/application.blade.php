@@ -76,7 +76,7 @@
         ];
         $degreeLevelLabels = [
             'junior_high' => 'มัธยมศึกษาตอนต้น', 'senior_high_vocational_cert' => 'มัธยมศึกษาตอนปลาย/ปวช.',
-            'diploma_high_vocational' => 'อนุปริญญา/ปวส.', 'vocational' => 'อาชีวะศึกษา',
+            'diploma_high_vocational' => 'อนุปริญญา/ปวส.',
             'bachelor' => 'ปริญญาตรี', 'master' => 'ปริญญาโท', 'other' => 'อื่นๆ',
         ];
         $languageLabels = ['thai' => 'ไทย / Thai', 'english' => 'อังกฤษ / English', 'chinese' => 'จีน / Chinese', 'other' => 'อื่น ๆ / Other'];
@@ -177,7 +177,9 @@
     </p>
 
     {{-- ================= ประวัติส่วนตัว ================= --}}
+    <div style="page-break-inside: avoid;">
     <div class="section-bar">ประวัติส่วนตัว <span class="en">/ Personal Background</span></div>
+    @php ob_start(); @endphp
     <table class="fields" style="table-layout:fixed;">
         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
         {{-- ชื่อ --}}
@@ -214,27 +216,27 @@
         <tr>
             <td><div class="f-label">เชื้อชาติ / Race</div><div class="f-value">{{ $applicant->ethnicity }}</div></td>
             <td><div class="f-label">ศาสนา / Religion</div><div class="f-value">{{ $applicant->religion }}</div></td>
-            <td><div class="f-label">ส่วนสูง / Height</div><div class="f-value">{{ $applicant->height_cm }} ซม.</div></td>
-            <td><div class="f-label">น้ำหนัก / Weight</div><div class="f-value">{{ $applicant->weight_kg }} กก.</div></td>
+            <td><div class="f-label">ส่วนสูง / Height</div><div class="f-value">@if (filled($applicant->height_cm)){{ $applicant->height_cm }} ซม.@endif</div></td>
+            <td><div class="f-label">น้ำหนัก / Weight</div><div class="f-value">@if (filled($applicant->weight_kg)){{ $applicant->weight_kg }} กก.@endif</div></td>
         </tr>
         {{-- ช่องทางติดต่อ --}}
         <tr>
-            <td><div class="f-label">ภูมิลำเนา / Hometown</div><div class="f-value">{{ $applicant->hometown }}</div></td>
+            <td colspan="2"><div class="f-label">ภูมิลำเนา / Hometown</div><div class="f-value">{{ $applicant->hometown }}</div></td>
             <td><div class="f-label">โทรศัพท์ที่ติดต่อ / Telephone</div><div class="f-value">{{ $applicant->phone }}</div></td>
             <td><div class="f-label">E-mail</div><div class="f-value">{{ $applicant->email }}</div></td>
-            <td><div class="f-label">Line ID</div><div class="f-value">{{ $applicant->line_id }}</div></td>
         </tr>
         <tr>
+            <td><div class="f-label">Line ID</div><div class="f-value">{{ $applicant->line_id }}</div></td>
             <td><div class="f-label">Facebook ID</div><div class="f-value">{{ $applicant->facebook }}</div></td>
             <td><div class="f-label">Instagram</div><div class="f-value">{{ $applicant->instagram }}</div></td>
             <td><div class="f-label">Twitter</div><div class="f-value">{{ $applicant->twitter }}</div></td>
-            <td>
+        </tr>
+        <tr>
+            <td colspan="2"><div class="f-label">ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก / Present Address</div><div class="f-value">{{ $applicant->current_address }}</div></td>
+            <td colspan="2">
                 <div class="f-label">ประวัติหมิ่นพระมหากษัตริย์ / Anti monarch record</div>
                 <div class="f-value">{{ $applicant->has_lese_majeste_record ? 'มี' : 'ไม่มี' }}</div>
             </td>
-        </tr>
-        <tr>
-            <td colspan="4"><div class="f-label">ที่อยู่ปัจจุบันที่ติดต่อได้สะดวก / Present Address</div><div class="f-value">{{ $applicant->current_address }}</div></td>
         </tr>
         {{-- บัตรประชาชน --}}
         <tr>
@@ -284,8 +286,12 @@
             <td><div class="f-label">สถานะมารดา / Mother's status</div><div class="f-value">{{ $applicant->mother_alive === true ? 'มีชีวิต' : ($applicant->mother_alive === false ? 'ถึงแก่กรรม' : '') }}</div></td>
         </tr>
     </table>
+    {{-- ช่องในส่วนประวัติส่วนตัวที่ไม่มีข้อมูล แสดงเป็น "-" --}}
+    {!! preg_replace('#(<div class="f-value">)\s*(</div>)#u', '$1-$2', ob_get_clean()) !!}
+    </div>
 
     {{-- ================= ประวัติการศึกษา ================= --}}
+    <div style="page-break-inside: avoid;">
     <div class="section-bar">ประวัติการศึกษา <span class="en">/ Educational Background</span></div>
     <table class="grid-table">
                     <tr>
@@ -309,8 +315,10 @@
                         <tr><td colspan="6" class="left" style="color:#a8a29e;">ไม่ได้ระบุข้อมูลการศึกษา</td></tr>
                     @endforelse
                 </table>
+    </div>
 
     {{-- ================= ภาษา ================= --}}
+    <div style="page-break-inside: avoid;">
     <div class="section-bar">ภาษา <span class="en">/ Languages</span></div>
     <table class="grid-table">
                     <tr>
@@ -334,8 +342,10 @@
                         <td colspan="5" class="left">ใบรับรองด้านภาษา / Certificate of Language: &nbsp; {{ $applicant->language_certificate_note }}</td>
                     </tr>
                 </table>
+    </div>
 
     {{-- ================= ประวัติการทำงาน ================= --}}
+    <div style="page-break-inside: avoid;">
     <div class="section-bar">ประวัติการทำงาน <span class="en">/ Employment History</span></div>
     <table class="grid-table">
                     <tr>
@@ -359,7 +369,9 @@
                         <tr><td colspan="6" class="left" style="color:#a8a29e;">ไม่ได้ระบุประวัติการทำงาน</td></tr>
                     @endforelse
                 </table>
+    </div>
 
+    <div style="page-break-inside: avoid;">
     <p style="text-align:center; font-size:9px; margin:8px 0 3px;">
         บุคคลที่ไม่ใช่ญาติซึ่งทราบประวัติของท่านและบริษัทฯ สามารถสอบถามได้<br>
         <em>Persons other than relatives can be contacted</em>
@@ -384,6 +396,7 @@
             <tr><td colspan="5" class="left" style="color:#a8a29e;">ไม่ได้ระบุบุคคลอ้างอิง</td></tr>
         @endforelse
     </table>
+    </div>
 
     <div style="page-break-inside: avoid;">
         <table class="fields" style="margin-top:6px;">

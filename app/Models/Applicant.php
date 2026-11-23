@@ -193,10 +193,9 @@ class Applicant extends Model
                 when 'junior_high' then 1
                 when 'senior_high_vocational_cert' then 2
                 when 'diploma_high_vocational' then 3
-                when 'vocational' then 4
-                when 'bachelor' then 5
-                when 'master' then 6
-                else 7
+                when 'bachelor' then 4
+                when 'master' then 5
+                else 6
             end
         ");
     }
