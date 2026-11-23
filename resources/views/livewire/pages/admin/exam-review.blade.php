@@ -34,7 +34,8 @@ new #[Layout('layouts.admin')] class extends Component
     #[Computed]
     public function positions()
     {
-        return Position::orderBy('title')->get();
+        // รวมตำแหน่งที่ลบแล้ว เพื่อให้ยังกรองดูผู้สมัครเดิมของตำแหน่งนั้นได้
+        return Position::withTrashed()->orderBy('title')->get();
     }
 
     #[Computed]

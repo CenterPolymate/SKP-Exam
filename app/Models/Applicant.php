@@ -172,7 +172,8 @@ class Applicant extends Model
 
     public function position(): BelongsTo
     {
-        return $this->belongsTo(Position::class);
+        // ตำแหน่งที่ถูกลบ (soft delete) แล้วยังต้องแสดงในใบสมัครเดิม
+        return $this->belongsTo(Position::class)->withTrashed();
     }
 
     public function examAssignment(): HasOne

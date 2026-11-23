@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Position extends Model
 {
+    // ลบแบบ soft delete เพื่อให้ใบสมัครเดิมยังอ้างอิงตำแหน่งนี้ได้
+    use SoftDeletes;
+
     protected $fillable = [
         'title',
         'description',

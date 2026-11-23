@@ -104,12 +104,7 @@ new #[Layout('layouts.admin')] class extends Component
             return;
         }
 
-        if ($position->applicants()->exists()) {
-            $this->deleteError = 'ไม่สามารถลบตำแหน่งนี้ได้ เนื่องจากมีผู้สมัครงานในตำแหน่งนี้อยู่แล้ว';
-
-            return;
-        }
-
+        // soft delete: ตำแหน่งหายจากรายการและหน้าสมัคร แต่ใบสมัครเดิมยังเก็บตำแหน่งนี้ไว้ในฐานข้อมูล
         $position->delete();
     }
 
@@ -258,7 +253,7 @@ new #[Layout('layouts.admin')] class extends Component
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
             <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
                 <h3 class="text-lg font-semibold text-stone-900">ยืนยันการลบตำแหน่ง</h3>
-                <p class="mt-2 text-sm text-stone-500">ต้องการลบตำแหน่งนี้ใช่หรือไม่? การลบไม่สามารถย้อนกลับได้</p>
+                <p class="mt-2 text-sm text-stone-500">ต้องการลบตำแหน่งนี้ใช่หรือไม่? ใบสมัครเดิมที่เคยสมัครตำแหน่งนี้จะยังเก็บชื่อตำแหน่งไว้ตามเดิม</p>
 
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" wire:click="cancelDelete" class="rounded-lg px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-100">

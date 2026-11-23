@@ -180,11 +180,11 @@
         <tr>
             <td colspan="2">
                 <div class="f-label">ชื่อ-สกุลภาษาไทย / Name (TH)</div>
-                <div class="f-value">{{ $applicant->full_name_th }}</div>
+                <div class="f-value">{{ $applicant->full_name_th }}@if (filled($applicant->nickname_th)) ({{ $applicant->nickname_th }})@endif</div>
             </td>
             <td colspan="2">
                 <div class="f-label">ชื่อ-สกุลภาษาอังกฤษ / Name in English</div>
-                <div class="f-value">{{ $applicant->title_en }} {{ $applicant->first_name_en }} {{ $applicant->last_name_en }} ({{ $applicant->nickname_en }})</div>
+                <div class="f-value">{{ $applicant->title_en }} {{ $applicant->first_name_en }} {{ $applicant->last_name_en }}@if (filled($applicant->nickname_en)) ({{ $applicant->nickname_en }})@endif</div>
             </td>
         </tr>
         {{-- ข้อมูลทั่วไป --}}
