@@ -11,7 +11,7 @@
     ];
     $livingStatusLabels = [
         'own_home' => $t('บ้านส่วนตัว', 'Own home'), 'rent_home' => $t('บ้านเช่า', 'Rented home'),
-        'with_parents' => $t('อาศัยบิดามารดา', 'Living with parents'), 'with_other' => $t('อาศัยอยู่กับผู้อื่น', 'Living with others'),
+        'with_parents' => $t('อาศัยอยู่กับบิดา', 'Living with parents'), 'with_other' => $t('อาศัยอยู่กับผู้อื่น', 'Living with others'),
     ];
     $maritalStatusLabels = [
         'single' => $t('โสด', 'Single'), 'married' => $t('แต่งงาน', 'Married'), 'divorced' => $t('หย่า', 'Divorced'),

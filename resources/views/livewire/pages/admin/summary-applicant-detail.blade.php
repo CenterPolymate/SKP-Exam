@@ -875,7 +875,7 @@ new #[Layout('layouts.admin')] class extends Component
             <x-form.section-title thai="สถานะความเป็นอยู่ & ครอบครัว" english="Living Status & Family" />
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <x-form.radio-group label="สถานะความเป็นอยู่" model="living_status" required
-                    :options="['own_home' => 'บ้านของตัวเอง', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อยู่กับพ่อแม่', 'with_other' => 'อยู่กับผู้อื่น']" />
+                    :options="['own_home' => 'บ้านของตัวเอง', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยอยู่กับบิดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น']" />
                 <x-form.radio-group label="สถานะครอบครัว" model="marital_status" required live
                     :options="['single' => 'โสด', 'married' => 'สมรส', 'divorced' => 'หย่าร้าง', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่']" />
             </div>
@@ -893,13 +893,13 @@ new #[Layout('layouts.admin')] class extends Component
             {{-- บิดามารดาและพี่น้อง --}}
             <x-form.section-title thai="ข้อมูลบิดามารดาและพี่น้อง" english="Parent & Sibling Information" />
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <x-form.input label="ชื่อบิดา" model="father_name" placeholder="ชื่อ-นามสกุลบิดา" />
+                <x-form.input label="ชื่อ-นามสกุลบิดา" model="father_name" placeholder="ชื่อ-นามสกุลบิดา" />
                 <x-form.input label="อายุบิดา (ปี)" model="father_age" type="number" placeholder="0" />
                 <x-form.input label="อาชีพบิดา" model="father_occupation" placeholder="อาชีพ" />
                 <x-form.radio-group label="สถานะบิดา" model="father_alive"
                     :options="['1' => 'มีชีวิตอยู่', '0' => 'เสียชีวิตแล้ว']" />
 
-                <x-form.input label="ชื่อมารดา" model="mother_name" placeholder="ชื่อ-นามสกุลมารดา" />
+                <x-form.input label="ชื่อ-นามสกุลมารดา" model="mother_name" placeholder="ชื่อ-นามสกุลมารดา" />
                 <x-form.input label="อายุมารดา (ปี)" model="mother_age" type="number" placeholder="0" />
                 <x-form.input label="อาชีพมารดา" model="mother_occupation" placeholder="อาชีพ" />
                 <x-form.radio-group label="สถานะมารดา" model="mother_alive"

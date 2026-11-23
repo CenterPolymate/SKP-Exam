@@ -120,7 +120,7 @@ new #[Layout('layouts.admin')] class extends Component
         $tier = fn ($v) => \App\Support\LanguageLevel::format($v) ?: '-';
 
         $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ'];
-        $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];
+        $livingStatusLabels = ['own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า', 'with_parents' => 'อาศัยอยู่กับบิดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น'];
         $maritalStatusLabels = ['single' => 'โสด', 'married' => 'แต่งงาน', 'divorced' => 'หย่า', 'widowed' => 'หม้าย', 'separated' => 'แยกกันอยู่'];
         $militaryStatusLabels = ['exempted' => 'ได้รับการยกเว้น', 'completed' => 'ผ่านการเกณฑ์ทหารแล้ว', 'awaiting_conscription' => 'รอเข้ารับการเกณฑ์ทหาร'];
         $degreeLevelLabels = ['junior_high' => 'มัธยมศึกษาตอนต้น', 'senior_high_vocational_cert' => 'มัธยมศึกษาตอนปลาย/ปวช.', 'diploma_high_vocational' => 'อนุปริญญา/ปวส.', 'vocational' => 'วิชาชีพ', 'bachelor' => 'ปริญญาตรี', 'master' => 'ปริญญาโท', 'other' => 'อื่นๆ'];

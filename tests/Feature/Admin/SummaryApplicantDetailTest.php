@@ -268,18 +268,31 @@ test('pdf shows nicknames in their own columns, not in parentheses after the nam
 
 test('pdf shows the number of children only when it was filled in', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $childrenValue = function ($applicant) use ($relations): string {
+        $html = view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+        preg_match('/Number of children<\/div>\s*<div class="f-value">(.*?)<\/div>/s', $html, $m);
 
-    $blank = makeFullApplicant(['spouse_name' => null, 'children_count' => null]);
-    $html = view('pdf.application', ['applicant' => $blank->load($relations)])->render();
-    expect($html)->not->toContain('คน)');
+        return trim($m[1] ?? 'NOT-FOUND');
+    };
 
-    $filled = makeFullApplicant(['spouse_name' => 'สมหญิง', 'children_count' => 2]);
-    $html = view('pdf.application', ['applicant' => $filled->load($relations)])->render();
-    expect($html)->toContain('สมหญิง')->toContain('(2 คน)');
+    expect($childrenValue(makeFullApplicant(['spouse_name' => null, 'children_count' => null])))->toBe('')
+        ->and($childrenValue(makeFullApplicant(['spouse_name' => 'สมหญิง', 'children_count' => 2])))->toBe('2 คน')
+        ->and($childrenValue(makeFullApplicant(['children_count' => 0])))->toBe('0 คน');
+});
 
-    $zero = makeFullApplicant(['children_count' => 0]);
-    $html = view('pdf.application', ['applicant' => $zero->load($relations)])->render();
-    expect($html)->toContain('(0 คน)');
+test('pdf family section has one column each for spouse occupation and for father and mother details', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $applicant = makeFullApplicant([
+        'spouse_name' => 'สมหญิง', 'spouse_occupation' => 'ครูสอนดนตรี',
+        'father_name' => 'วุฒิชัย', 'father_age' => 47, 'father_occupation' => 'รับจ้าง', 'father_alive' => true,
+        'mother_name' => 'นนทกร', 'mother_age' => 45, 'mother_occupation' => 'ค้าขาย', 'mother_alive' => false,
+    ]);
+    $html = view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+
+    expect($html)->toContain('อาชีพคู่สมรส / Spouse')->toContain('ครูสอนดนตรี')
+        ->toContain('อายุบิดา (ปี)')->toContain('อาชีพบิดา')->toContain('สถานะบิดา')->toContain('มีชีวิต')
+        ->toContain('อายุมารดา (ปี)')->toContain('อาชีพมารดา')->toContain('สถานะมารดา')->toContain('ถึงแก่กรรม')
+        ->not->toContain('(47 ปี)');
 });
 
 test('pdf footer: known person shows dash for the missing half, consent first, single signature with thai date', function () {

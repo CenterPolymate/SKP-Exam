@@ -28,7 +28,7 @@
         table.outer td, table.outer th { border: 1px solid #44403c; padding: 3px 5px; vertical-align: top; }
 
         .logos-row td { text-align: center; padding: 6px; }
-        .logos-row img { height: 22px; }
+        .logos-row img { height: 22px; vertical-align: middle; }
 
         .section-bar {
             background: #78350f; color: #ffffff; font-weight: bold; font-size: 11px;
@@ -64,7 +64,7 @@
         $genderLabels = ['male' => 'ชาย', 'female' => 'หญิง', 'other' => 'ไม่ระบุเพศ'];
         $livingStatusLabels = [
             'own_home' => 'บ้านส่วนตัว', 'rent_home' => 'บ้านเช่า',
-            'with_parents' => 'อาศัยบิดามารดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น',
+            'with_parents' => 'อาศัยอยู่กับบิดา', 'with_other' => 'อาศัยอยู่กับผู้อื่น',
         ];
         $maritalStatusLabels = [
             'single' => 'โสด', 'married' => 'แต่งงาน', 'divorced' => 'หย่า',
@@ -106,12 +106,16 @@
     <h1 class="doc-title">ใบสมัครงาน</h1>
     <p class="doc-sub">(Application Form)</p>
 
+    {{-- ช่องติ๊กหน้าโลโก้บริษัท: ระบบไม่ได้เก็บว่าสมัครบริษัทไหน จึงเป็นช่องว่างให้ HR ติ๊กด้วยมือ --}}
+    @php
+        $logoBox = '<span style="display:inline-block; width:10px; height:10px; border:1px solid #1c1917; margin-right:6px; vertical-align:middle;">&nbsp;</span>';
+    @endphp
     <table class="outer logos-row">
         <tr>
-            <td style="width:25%;"><img src="{{ public_path('images/logos/grand-sk.png') }}"></td>
-            <td style="width:25%;"><img src="{{ public_path('images/logos/sk-polymer.png') }}"></td>
-            <td style="width:25%;"><img src="{{ public_path('images/logos/trt.png') }}"></td>
-            <td style="width:25%;"><img src="{{ public_path('images/logos/polymate.png') }}"></td>
+            <td style="width:25%;">{!! $logoBox !!}<img src="{{ public_path('images/logos/grand-sk.png') }}"></td>
+            <td style="width:25%;">{!! $logoBox !!}<img src="{{ public_path('images/logos/sk-polymer.png') }}"></td>
+            <td style="width:25%;">{!! $logoBox !!}<img src="{{ public_path('images/logos/trt.png') }}"></td>
+            <td style="width:25%;">{!! $logoBox !!}<img src="{{ public_path('images/logos/polymate.png') }}"></td>
         </tr>
     </table>
 
@@ -239,45 +243,45 @@
             <td><div class="f-label">บัตรหมดอายุ / Expiry date</div><div class="f-value">{{ $fmtDate($applicant->id_expiry_date) }}</div></td>
             <td><div class="f-label">สถานะทางทหาร / Military Service</div><div class="f-value">{{ $militaryStatusLabels[$applicant->military_status] ?? '' }}</div></td>
         </tr>
-        {{-- ครอบครัว --}}
+        {{-- ครอบครัว (ทุกช่องกว้าง 1 คอลัมน์) --}}
         <tr>
-            <td colspan="3">
+            <td>
                 <div class="f-label">สถานะความเป็นอยู่ / Living Status</div>
-                <div class="f-value">
-                    {{ $livingStatusLabels[$applicant->living_status] ?? '' }}
-                </div>
+                <div class="f-value">{{ $livingStatusLabels[$applicant->living_status] ?? '' }}</div>
             </td>
             <td>
-                <div class="f-label">จำนวนพี่น้อง (รวมท่านด้วย) / ท่านเป็นคนที่</div>
-                <div class="f-value">{{ $applicant->siblings_count }} คน / คนที่ {{ $applicant->birth_order }}</div>
+                <div class="f-label">จำนวนพี่น้อง (รวมท่านด้วย) / Number of siblings</div>
+                <div class="f-value">@if ($applicant->siblings_count !== null){{ $applicant->siblings_count }} คน@endif</div>
+            </td>
+            <td>
+                <div class="f-label">ท่านเป็นคนที่ / Birth order</div>
+                <div class="f-value">{{ $applicant->birth_order }}</div>
+            </td>
+            <td>
+                <div class="f-label">สถานะครอบครัว / Marital Status</div>
+                <div class="f-value">{{ $maritalStatusLabels[$applicant->marital_status] ?? '' }}</div>
             </td>
         </tr>
         <tr>
-            <td colspan="2">
-                <div class="f-label">สถานะครอบครัว / Marital Status</div>
-                <div class="f-value">
-                    {{ $maritalStatusLabels[$applicant->marital_status] ?? '' }}
-                </div>
-            </td>
             <td>
                 <div class="f-label">กรณีแต่งงาน / If Married</div>
-                <div class="f-value">
-                    {{ $applicant->marriage_registered === true ? 'จดทะเบียน' : ($applicant->marriage_registered === false ? 'ไม่ได้จด' : '') }}
-                </div>
+                <div class="f-value">{{ $applicant->marriage_registered === true ? 'จดทะเบียน' : ($applicant->marriage_registered === false ? 'ไม่ได้จด' : '') }}</div>
             </td>
-            <td><div class="f-label">ชื่อคู่สมรส / จำนวนบุตร</div><div class="f-value">{{ $applicant->spouse_name }}@if ($applicant->children_count !== null) &nbsp; ({{ $applicant->children_count }} คน)@endif</div></td>
+            <td><div class="f-label">ชื่อคู่สมรส / Spouse's name</div><div class="f-value">{{ $applicant->spouse_name }}</div></td>
+            <td><div class="f-label">อาชีพคู่สมรส / Spouse's occupation</div><div class="f-value">{{ $applicant->spouse_occupation }}</div></td>
+            <td><div class="f-label">จำนวนบุตร / Number of children</div><div class="f-value">@if ($applicant->children_count !== null){{ $applicant->children_count }} คน@endif</div></td>
         </tr>
         <tr>
-            <td colspan="2">
-                <div class="f-label">ชื่อบิดา / Name of Father</div>
-                <div class="f-value">{{ $applicant->father_name }} {{ $applicant->father_age ? '('.$applicant->father_age.' ปี)' : '' }} {{ $applicant->father_occupation }}
-                    &nbsp; {{ $applicant->father_alive === true ? 'มีชีวิต' : ($applicant->father_alive === false ? 'ถึงแก่กรรม' : '') }}</div>
-            </td>
-            <td colspan="2">
-                <div class="f-label">ชื่อมารดา / Name of Mother</div>
-                <div class="f-value">{{ $applicant->mother_name }} {{ $applicant->mother_age ? '('.$applicant->mother_age.' ปี)' : '' }} {{ $applicant->mother_occupation }}
-                    &nbsp; {{ $applicant->mother_alive === true ? 'มีชีวิต' : ($applicant->mother_alive === false ? 'ถึงแก่กรรม' : '') }}</div>
-            </td>
+            <td><div class="f-label">ชื่อ-นามสกุลบิดา / Father's full name</div><div class="f-value">{{ $applicant->father_name }}</div></td>
+            <td><div class="f-label">อายุบิดา (ปี) / Father's age (years)</div><div class="f-value">{{ $applicant->father_age }}</div></td>
+            <td><div class="f-label">อาชีพบิดา / Father's occupation</div><div class="f-value">{{ $applicant->father_occupation }}</div></td>
+            <td><div class="f-label">สถานะบิดา / Father's status</div><div class="f-value">{{ $applicant->father_alive === true ? 'มีชีวิต' : ($applicant->father_alive === false ? 'ถึงแก่กรรม' : '') }}</div></td>
+        </tr>
+        <tr>
+            <td><div class="f-label">ชื่อ-นามสกุลมารดา / Mother's full name</div><div class="f-value">{{ $applicant->mother_name }}</div></td>
+            <td><div class="f-label">อายุมารดา (ปี) / Mother's age (years)</div><div class="f-value">{{ $applicant->mother_age }}</div></td>
+            <td><div class="f-label">อาชีพมารดา / Mother's occupation</div><div class="f-value">{{ $applicant->mother_occupation }}</div></td>
+            <td><div class="f-label">สถานะมารดา / Mother's status</div><div class="f-value">{{ $applicant->mother_alive === true ? 'มีชีวิต' : ($applicant->mother_alive === false ? 'ถึงแก่กรรม' : '') }}</div></td>
         </tr>
     </table>
 
