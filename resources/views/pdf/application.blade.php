@@ -51,9 +51,9 @@
         .doc-title-2 { font-weight: bold; font-size: 11px; color: #78350f; margin-top: 10px; margin-bottom: 3px; }
         .note-box { border: 1px solid #44403c; padding: 5px 8px; font-size: 9px; margin-top: 4px; }
         .decl { font-size: 9px; line-height: 1.5; margin: 4px 0; }
-        .sig-table { width: 100%; margin-top: 14px; }
-        .sig-table td { width: 50%; text-align: center; font-size: 9px; padding-top: 22px; }
-        .sig-line { border-top: 1px solid #57534e; padding-top: 3px; width: 75%; margin: 0 auto; }
+        .sig-table { width: 100%; margin-top: 4px; }
+        .sig-table td { width: 50%; text-align: center; font-size: 8px; padding-top: 8px; }
+        .sig-line { border-top: 1px solid #57534e; padding-top: 1px; width: 75%; margin: 0 auto; }
 
         .footer-note { margin-top: 10px; font-size: 8px; color: #a8a29e; text-align: center; }
     </style>
@@ -363,18 +363,22 @@
                         <th style="width:12%;">เงินเดือน<br>Last Salary</th>
                         <th style="width:28%;">สาเหตุที่ออก<br>Reasons of resignation</th>
                     </tr>
-                    @forelse ($applicant->workHistories as $work)
+                    {{-- ฟอร์มรับได้ 4 รายการ: แสดงครบ 4 แถวเสมอ ช่องที่ไม่มีข้อมูลเป็น "-" --}}
+                    @php
+                        $dash = fn ($value) => filled($value) ? $value : '-';
+                        $workRows = $applicant->workHistories->values();
+                    @endphp
+                    @for ($w = 0; $w < max(4, $workRows->count()); $w++)
+                        @php $work = $workRows->get($w); @endphp
                         <tr>
-                            <td class="left">{{ $work->company_name }}</td>
-                            <td>{{ $work->start_year }} - {{ $work->end_year }}</td>
-                            <td class="left">{{ $work->position }}</td>
-                            <td class="left">{{ $work->supervisor_name }} {{ $work->supervisor_phone ? '/ '.$work->supervisor_phone : '' }}</td>
-                            <td>{{ $work->last_salary ? number_format($work->last_salary, 0) : '' }}</td>
-                            <td class="left">{{ $work->resignation_reason }}</td>
+                            <td class="left">{{ $dash($work?->company_name) }}</td>
+                            <td>{{ $work && ($work->start_year || $work->end_year) ? $dash($work->start_year).' - '.$dash($work->end_year) : '-' }}</td>
+                            <td class="left">{{ $dash($work?->position) }}</td>
+                            <td class="left">{{ $work && (filled($work->supervisor_name) || filled($work->supervisor_phone)) ? $dash($work->supervisor_name).' / '.$dash($work->supervisor_phone) : '-' }}</td>
+                            <td>{{ $work && $work->last_salary ? number_format($work->last_salary, 0) : '-' }}</td>
+                            <td class="left">{{ $dash($work?->resignation_reason) }}</td>
                         </tr>
-                    @empty
-                        <tr><td colspan="6" class="left" style="color:#a8a29e;">ไม่ได้ระบุประวัติการทำงาน</td></tr>
-                    @endforelse
+                    @endfor
                 </table>
     </div>
 
@@ -391,21 +395,23 @@
             <th style="width:16%;">ตำแหน่ง<br>Position</th>
             <th style="width:18%;">โทรศัพท์<br>Telephone</th>
         </tr>
-        @forelse ($applicant->references as $ref)
+        {{-- ฟอร์มรับได้ 2 คน: แสดงครบ 2 แถวเสมอ ช่องที่ไม่มีข้อมูลเป็น "-" --}}
+        @php $refRows = $applicant->references->values(); @endphp
+        @for ($r = 0; $r < max(2, $refRows->count()); $r++)
+            @php $ref = $refRows->get($r); @endphp
             <tr>
-                <td class="left">{{ $ref->name }}</td>
-                <td class="left">{{ $ref->relationship }}</td>
-                <td class="left">{{ $ref->workplace_address }}</td>
-                <td class="left">{{ $ref->position }}</td>
-                <td>{{ $ref->phone }}</td>
+                <td class="left">{{ $dash($ref?->name) }}</td>
+                <td class="left">{{ $dash($ref?->relationship) }}</td>
+                <td class="left">{{ $dash($ref?->workplace_address) }}</td>
+                <td class="left">{{ $dash($ref?->position) }}</td>
+                <td>{{ $dash($ref?->phone) }}</td>
             </tr>
-        @empty
-            <tr><td colspan="5" class="left" style="color:#a8a29e;">ไม่ได้ระบุบุคคลอ้างอิง</td></tr>
-        @endforelse
+        @endfor
     </table>
     </div>
 
     <div style="page-break-inside: avoid;">
+        @php ob_start(); @endphp
         <table class="fields" style="margin-top:6px;">
             <tr>
                 <td colspan="2"><div class="f-label">ความรู้พิเศษ/ความสามารถพิเศษ / Special ability</div><div class="f-value">{{ $applicant->special_skills }}</div></td>
@@ -430,6 +436,8 @@
                 </td>
             </tr>
         </table>
+        {{-- ช่องที่ไม่มีข้อมูลแสดงเป็น "-" --}}
+        {!! preg_replace('#(<div class="f-value">)\s*(</div>)#u', '$1-$2', ob_get_clean()) !!}
 
         <div class="note-box">
             <div class="f-value">
@@ -438,37 +446,15 @@
         </div>
     </div>
 
-    {{-- ================= วันและเวลาปฏิบัติงาน ================= --}}
-    <div class="doc-title-2">วันและเวลาปฏิบัติงาน / Working days and hours</div>
-    <div class="note-box" style="font-size:8.5px; line-height:1.5;">
-        <strong>กลุ่มพนักงานที่ไม่เกี่ยวข้องกับการผลิต / Employee group that is not related to the production</strong><br>
-        - สัปดาห์ที่ 1, 3 ปฏิบัติงานวันจันทร์ถึงวันศุกร์ และวันเสาร์ทำงานรูปแบบ Work From Anywhere ครึ่งวันเช้า<br>
-        - สัปดาห์ที่ 2, 4 ปฏิบัติงานวันจันทร์ถึงวันศุกร์ วันเสาร์เป็นวันหยุดประจำสัปดาห์<br>
-        - สัปดาห์ที่ 5 ปฏิบัติงานวันเสาร์ (กิจกรรม CSR) ตามข้อบังคับการทำงานของแต่ละบริษัท<br><br>
-        <strong>กลุ่มพนักงานที่เกี่ยวข้องกับการผลิต / Employee group that is related to the production</strong><br>
-        - ปฏิบัติงานวันจันทร์ถึงวันเสาร์ ตามข้อบังคับการทำงานของแต่ละบริษัท (เลือกหยุดวันเสาร์ได้ 2 วันต่อเดือน)
-    </div>
-
-    <p class="decl">
-        <span style="font-weight:bold; color: {{ $applicant->data_accuracy_consent ? '#15803d' : '#dc2626' }};">[{{ $applicant->data_accuracy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]</span>
-        ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริงทุกประการ หากข้อความตอนหนึ่งตอนใดไม่ตรงกับความเป็นจริง ข้าพเจ้าขอยอมรับว่าการว่าจ้างที่ตกลงนั้นเป็นอันโมฆะทันที
-        และยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และการเป็นพนักงานของบริษัทได้
-    </p>
-    <p class="decl">
-        <span style="font-weight:bold; color: {{ $applicant->privacy_policy_consent ? '#15803d' : '#dc2626' }};">[{{ $applicant->privacy_policy_consent ? 'ยอมรับแล้ว' : 'ยังไม่ยอมรับ' }}]</span>
-        ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคลสำหรับบุคลากรของบริษัท ข้าพเจ้ารับทราบและยินยอมให้เก็บ ใช้ เปิดเผย ตรวจสอบ
-        ข้อมูลดังกล่าวได้ตลอดเวลาที่จำเป็นเพื่อการสมัครงาน และตลอดระยะเวลาการเป็นพนักงานของบริษัท
-    </p>
-
     <table class="sig-table" style="table-layout:fixed;">
         <tr>
             <td style="width:25%; padding-top:0;"></td>
-            <td style="width:50%; padding-top:22px;">
-                <div style="font-size:10px; font-weight:bold; min-height:14px; padding-bottom:2px;">{{ $applicant->signature_name }}</div>
+            <td style="width:50%; padding-top:8px;">
+                <div style="font-size:9px; font-weight:bold; min-height:12px; padding-bottom:1px;">{{ $applicant->signature_name }}</div>
                 <div class="sig-line" style="width:100%;">
                     ลงชื่อผู้สมัครงาน / Applicant's Signature
                 </div>
-                <div style="margin-top:3px;">วันที่ {{ $fmtThaiDate($applicant->signed_at) }}</div>
+                <div style="margin-top:1px;">วันที่ {{ $fmtThaiDate($applicant->signed_at) }}</div>
             </td>
             <td style="width:25%; padding-top:0;"></td>
         </tr>

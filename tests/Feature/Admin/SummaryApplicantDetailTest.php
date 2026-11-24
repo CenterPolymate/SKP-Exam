@@ -303,6 +303,60 @@ test('pdf personal background shows a dash for every empty field', function () {
         ->and($valueOf('Height', $filled))->toBe('175.0 ซม.');
 });
 
+test('pdf does not include the working days and hours section', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $html = view('pdf.application', ['applicant' => makeFullApplicant()->load($relations)])->render();
+
+    expect($html)->not->toContain('Working days and hours')
+        ->not->toContain('วันและเวลาปฏิบัติงาน')
+        ->not->toContain('ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริง')
+        ->not->toContain('ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล');
+});
+
+test('pdf employment history always shows four rows with dashes for missing data', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $rowsOf = function ($applicant) use ($relations): array {
+        $html = view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+        preg_match('/Employment History.*?<\/table>/s', $html, $section);
+        preg_match_all('/<tr>\s*<td class="left">(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td class="left">(.*?)<\/td>\s*<td class="left">(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td class="left">(.*?)<\/td>/s', $section[0], $m, PREG_SET_ORDER);
+
+        return array_map(fn ($row) => array_map('trim', array_slice($row, 1)), $m);
+    };
+
+    $none = makeFullApplicant();
+    $none->workHistories()->delete();
+    expect($rowsOf($none->fresh()))->toHaveCount(4)->and($rowsOf($none->fresh())[0])->toBe(['-', '-', '-', '-', '-', '-']);
+
+    $one = makeFullApplicant();
+    $one->workHistories()->delete();
+    $one->workHistories()->create(['order_no' => 1, 'company_name' => 'บริษัททดสอบ', 'position' => 'วิศวกร', 'start_year' => 2560, 'end_year' => 2564]);
+    $rows = $rowsOf($one->fresh());
+    expect($rows)->toHaveCount(4)
+        ->and($rows[0])->toBe(['บริษัททดสอบ', '2560 - 2564', 'วิศวกร', '-', '-', '-'])
+        ->and($rows[3])->toBe(['-', '-', '-', '-', '-', '-']);
+});
+
+test('pdf references always show two rows and the extra-info fields show a dash when empty', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $valueOf = function (string $label, $applicant) use ($relations): string {
+        $html = view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
+        preg_match('/'.preg_quote($label, '/').'<\/div>\s*<div class="f-value">(.*?)<\/div>/s', $html, $m);
+
+        return trim($m[1] ?? 'NOT-FOUND');
+    };
+
+    $blank = makeFullApplicant(['special_skills' => null, 'guarantor_required_ok' => null, 'shift_work_ok' => null, 'available_start_date' => null]);
+    $blank->references()->delete();
+    $html = view('pdf.application', ['applicant' => $blank->fresh()->load($relations)])->render();
+    preg_match('/Persons other than relatives.*?<\/table>/s', $html, $section);
+
+    expect(substr_count($section[0], '<td class="left">-</td>'))->toBe(8) // 2 แถว x 4 ช่องข้อความ
+        ->and($valueOf('Special ability', $blank))->toBe('-')
+        ->and($valueOf('Can you provide a guarantor', $blank))->toBe('-')
+        ->and($valueOf('Shift work is required only for certain positions, such as production line supervisors', $blank))->toBe('-')
+        ->and($valueOf('ท่านพร้อมที่จะปฏิบัติงานกับบริษัทฯ ได้ในวันที่', $blank))->toBe('-');
+});
+
 test('pdf lists every education level and leaves unfilled levels blank', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
     $applicant = makeFullApplicant();
@@ -336,14 +390,14 @@ test('pdf family section has one column each for spouse occupation and for fathe
         ->not->toContain('(47 ปี)');
 });
 
-test('pdf footer: known person shows dash for the missing half, consent first, single signature with thai date', function () {
+test('pdf footer: known person shows dash for the missing half, single signature with thai date', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
     $render = fn ($applicant) => view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
     $knownPerson = '/ความสัมพันธ์<\/div><div class="f-value">(.*?)<\/div>/su';
 
-    // ไม่กรอกทั้งสองช่อง: ไม่แสดงอะไร
+    // ไม่กรอกทั้งสองช่อง: แสดง -
     preg_match($knownPerson, $render(makeFullApplicant()), $m);
-    expect(trim($m[1]))->toBe('');
+    expect(trim($m[1]))->toBe('-');
 
     // กรอกช่องเดียว: อีกช่องเป็น -
     preg_match($knownPerson, $render(makeFullApplicant(['known_person_in_company' => 'สมศักดิ์'])), $m);
@@ -351,13 +405,12 @@ test('pdf footer: known person shows dash for the missing half, consent first, s
     preg_match($knownPerson, $render(makeFullApplicant(['known_person_relation' => 'เพื่อน'])), $m);
     expect(trim($m[1]))->toBe('- / เพื่อน');
 
-    // ข้อความยินยอม: [ยอมรับแล้ว] อยู่หน้าข้อความ, ช่องเซ็นเดียว, วันที่ พ.ศ.
+    // ช่องเซ็นเดียว, วันที่ พ.ศ. (ข้อความรับรอง/ยินยอมถูกเอาออกจาก PDF แล้ว)
     $html = $render(makeFullApplicant([
         'data_accuracy_consent' => true, 'privacy_policy_consent' => true,
         'signature_name' => 'ดร. นนทิวัฒน์ เพ็งพันธ์', 'signed_at' => '2026-11-17',
     ]));
-    expect($html)->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าขอรับรองว่า/u')
-        ->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าได้อ่านนโยบาย/u')
+    expect($html)->not->toContain('[ยอมรับแล้ว]')
         ->toContain('วันที่ 17 พฤศจิกายน พ.ศ. 2569')
         ->and(substr_count($html, "Applicant's Signature"))->toBe(1);
 });
