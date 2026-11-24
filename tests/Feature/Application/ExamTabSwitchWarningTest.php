@@ -84,3 +84,69 @@ test('tab switch reports are counted and logged for the owner only', function ()
         ->assertForbidden();
     expect($attempt->fresh()->suspicious_activity_count)->toBe(2);
 });
+
+test('urls in a question become safe clickable links and nothing else is rendered as html', function () {
+    $html = \App\Support\Linkify::toHtml("ทำแบบทดสอบที่ https://forms.gle/7Hv2aGW26oiRUAag7. แล้วแนบภาพ <script>alert(1)</script>");
+
+    expect($html)->toContain('<a href="https://forms.gle/7Hv2aGW26oiRUAag7" target="_blank" rel="noopener noreferrer" data-exam-link')
+        ->toContain('>https://forms.gle/7Hv2aGW26oiRUAag7</a>.') // จุดท้ายประโยคอยู่นอกลิงก์
+        ->toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
+        ->not->toContain('<script>')
+        ->and(\App\Support\Linkify::toHtml('javascript:alert(1) ftp://x.com'))->not->toContain('<a ')
+        ->and(\App\Support\Linkify::toHtml('ข้อความธรรมดา'))->toBe('ข้อความธรรมดา');
+});
+
+test('exam page renders the question link as clickable and wires the link-click handler', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $assignment = makeAssignment($admin->id);
+    $attempt = startedAttemptFor($assignment, $admin->id);
+    $attempt->exam->questions()->first()->update(['question_text' => 'ทำที่ https://forms.gle/abc123']);
+
+    $this->actingAs($assignment, 'exam_applicant')
+        ->get(route('exam.attempts.take', $attempt))
+        ->assertOk()
+        ->assertSee('<a href="https://forms.gle/abc123" target="_blank" rel="noopener noreferrer" data-exam-link', false)
+        ->assertSee('onExamLinkClick($event)', false)
+        ->assertSee('leftForExamLink', false);
+});
+
+test('opening a question link is logged but does not count as suspicious activity', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $assignment = makeAssignment($admin->id);
+    $attempt = startedAttemptFor($assignment, $admin->id);
+
+    $this->actingAs($assignment, 'exam_applicant')
+        ->postJson(route('exam.attempts.suspicious-activity', $attempt), ['type' => 'exam_link_opened', 'url' => 'https://forms.gle/abc123'])
+        ->assertOk();
+
+    $attempt->refresh();
+    expect($attempt->suspicious_activity_count)->toBe(0)
+        ->and($attempt->suspicious_activity_log)->toHaveCount(1)
+        ->and($attempt->suspicious_activity_log[0]['type'])->toBe('exam_link_opened')
+        ->and($attempt->suspicious_activity_log[0]['url'])->toBe('https://forms.gle/abc123');
+
+    // สลับแท็บจริงยังนับตามปกติ
+    $this->postJson(route('exam.attempts.suspicious-activity', $attempt), ['type' => 'tab_switch'])->assertOk();
+    expect($attempt->fresh()->suspicious_activity_count)->toBe(1);
+});
+
+test('admin grading page lists opened question links separately from suspicious signals', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $assignment = makeAssignment($admin->id);
+    $attempt = startedAttemptFor($assignment, $admin->id);
+    $attempt->update([
+        'suspicious_activity_count' => 1,
+        'suspicious_activity_log' => [
+            ['type' => 'exam_link_opened', 'url' => 'https://forms.gle/abc123', 'at' => '2026-11-24 10:00:00'],
+            ['type' => 'tab_switch', 'at' => '2026-11-24 10:05:00'],
+        ],
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.exam-review.grade', $attempt))
+        ->assertOk()
+        ->assertSee('ผู้สมัครเปิดลิงก์ในโจทย์ 1 ครั้ง')
+        ->assertSee('https://forms.gle/abc123')
+        ->assertSee('พบสัญญาณน่าสงสัยระหว่างทำข้อสอบ 1 ครั้ง')
+        ->assertSee('สลับแท็บ/หน้าต่าง');
+});

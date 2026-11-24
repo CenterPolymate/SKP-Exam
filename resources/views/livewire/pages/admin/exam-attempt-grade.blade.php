@@ -86,6 +86,22 @@ new #[Layout('layouts.admin')] class extends Component
             </div>
         </div>
 
+        @php
+            $activityLog = collect($attempt->suspicious_activity_log ?? []);
+            $linkEvents = $activityLog->where('type', 'exam_link_opened');
+            $suspiciousEvents = $activityLog->where('type', '!=', 'exam_link_opened');
+        @endphp
+        @if ($linkEvents->isNotEmpty())
+            <div class="mt-4 rounded-xl border border-stone-200 bg-white p-4">
+                <p class="text-sm font-semibold text-stone-700">ผู้สมัครเปิดลิงก์ในโจทย์ {{ $linkEvents->count() }} ครั้ง (ไม่นับเป็นสัญญาณน่าสงสัย)</p>
+                <ul class="mt-2 space-y-1 text-xs text-stone-600">
+                    @foreach ($linkEvents as $event)
+                        <li>• {{ \Illuminate\Support\Carbon::parse($event['at'])->format('d/m/Y H:i:s') }}@if (! empty($event['url'])) — {{ $event['url'] }}@endif</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if ($attempt->suspicious_activity_count > 0)
             @php
                 $activityLabels = ['tab_switch' => 'สลับแท็บ/หน้าต่าง', 'fullscreen_exit' => 'ออกจากโหมดเต็มจอ'];
@@ -99,7 +115,7 @@ new #[Layout('layouts.admin')] class extends Component
                     เป็นเพียงสัญญาณให้พิจารณาประกอบ ไม่ได้หมายความว่าผู้สมัครทุจริตเสมอไป (อาจเกิดจากการแจ้งเตือน เครื่องค้าง ฯลฯ)
                 </p>
                 <ul class="mt-2 space-y-1 text-xs text-red-700">
-                    @foreach (($attempt->suspicious_activity_log ?? []) as $event)
+                    @foreach ($suspiciousEvents as $event)
                         <li>• {{ $activityLabels[$event['type']] ?? $event['type'] }} — {{ \Illuminate\Support\Carbon::parse($event['at'])->format('d/m/Y H:i:s') }}</li>
                     @endforeach
                 </ul>
@@ -125,7 +141,7 @@ new #[Layout('layouts.admin')] class extends Component
                         @if ($q->content_format === 'image' && $q->question_image_path)
                             <img src="{{ \Illuminate\Support\Facades\Storage::url($q->question_image_path) }}" class="max-h-80 rounded-lg ring-1 ring-stone-200">
                         @else
-                            <p class="whitespace-pre-line text-stone-800">{{ $q->question_text }}</p>
+                            <p class="whitespace-pre-line text-stone-800">{!! \App\Support\Linkify::toHtml($q->question_text) !!}</p>
                         @endif
                     </div>
                     <p class="mt-1 text-xs text-stone-400">คะแนนเต็ม {{ rtrim(rtrim(number_format((float) $q->points, 2), '0'), '.') }} คะแนน</p>

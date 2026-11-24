@@ -214,14 +214,26 @@ new #[Layout('layouts.exam-app')] class extends Component
         remaining: {{ max(0, $deadlineTimestamp - now()->timestamp) }},
         busy: false,
         leftPage: false,
+        leftForExamLink: false,
+        linkClickedAt: 0,
         tabSwitches: {{ (int) $attempt->suspicious_activity_count }},
         // ถูกเรียกจาก @visibilitychange.document ที่ root element — Alpine จะถอด listener เองเมื่อ component ถูกทำลาย
         // (เดิมใช้ document.addEventListener ใน x-init ซึ่งไม่ถูกถอดตอนเปลี่ยนหน้าแบบ wire:navigate ทำให้นับซ้ำได้)
         onVisibilityChange() {
             if (document.hidden) {
+                // เพิ่งคลิกลิงก์ในโจทย์ (เช่น Google Form) → เป็นการออกไปทำข้อสอบตามที่โจทย์สั่ง ไม่นับว่าน่าสงสัย
+                if (Date.now() - this.linkClickedAt < 3000) {
+                    this.leftForExamLink = true;
+                    return;
+                }
                 this.leftPage = true;
                 this.tabSwitches++;
                 this.reportSuspicious('tab_switch');
+                return;
+            }
+
+            if (this.leftForExamLink) {
+                this.leftForExamLink = false;
                 return;
             }
 
@@ -230,6 +242,13 @@ new #[Layout('layouts.exam-app')] class extends Component
                 this.leftPage = false;
                 this.openTabWarning();
             }
+        },
+        // คลิกลิงก์ในโจทย์: บันทึกลงล็อกอย่างเดียว (ไม่เพิ่มจำนวนสัญญาณน่าสงสัย) เพื่อให้ HR ตรวจย้อนหลังได้
+        onExamLinkClick(e) {
+            const link = e.target.closest('a[data-exam-link]');
+            if (!link) return;
+            this.linkClickedAt = Date.now();
+            this.reportSuspicious('exam_link_opened', link.href);
         },
         openTabWarning() {
             // ใช้ style.display ตรงๆ เหมือน submit modal (ดูหมายเหตุที่ openSubmitModal)
@@ -283,14 +302,14 @@ new #[Layout('layouts.exam-app')] class extends Component
                 e.preventDefault();
             }
         },
-        reportSuspicious(type) {
+        reportSuspicious(type, url = null) {
             fetch('{{ route('exam.attempts.suspicious-activity', $attempt) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').content,
                 },
-                body: JSON.stringify({ type }),
+                body: JSON.stringify({ type, url }),
                 keepalive: true,
             }).catch(() => {});
         }
@@ -372,7 +391,7 @@ new #[Layout('layouts.exam-app')] class extends Component
                 @if ($q->content_format === 'image' && $q->question_image_path)
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($q->question_image_path) }}" class="max-h-80 rounded-lg ring-1 ring-stone-200">
                 @else
-                    <p class="whitespace-pre-line text-stone-800">{{ $q->question_text }}</p>
+                    <p class="whitespace-pre-line text-stone-800" @click="onExamLinkClick($event)">{!! \App\Support\Linkify::toHtml($q->question_text) !!}</p>
                 @endif
                 <p class="mt-1 text-xs text-stone-400">{{ rtrim(rtrim(number_format((float) $q->points, 2), '0'), '.') }} คะแนน</p>
             </div>
