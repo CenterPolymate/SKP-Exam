@@ -303,6 +303,24 @@ test('pdf personal background shows a dash for every empty field', function () {
         ->and($valueOf('Height', $filled))->toBe('175.0 ซม.');
 });
 
+test('pdf lists every education level and leaves unfilled levels blank', function () {
+    $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
+    $applicant = makeFullApplicant();
+    $applicant->education()->delete();
+    $applicant->education()->create(['degree_level' => 'bachelor', 'institution_name' => 'มหาวิทยาลัยทดสอบ', 'start_year' => 2560, 'end_year' => 2564]);
+
+    $html = view('pdf.application', ['applicant' => $applicant->fresh()->load($relations)])->render();
+
+    expect($html)->toContain('มัธยมศึกษาตอนต้น')
+        ->toContain('มัธยมศึกษาตอนปลาย/ปวช.')
+        ->toContain('อนุปริญญา/ปวส.')
+        ->toContain('ปริญญาตรี')->toContain('มหาวิทยาลัยทดสอบ')
+        ->toContain('ปริญญาโท')
+        ->toContain('อื่นๆ')
+        ->not->toContain('ไม่ได้ระบุข้อมูลการศึกษา')
+        ->not->toContain('วิชาชีพ');
+});
+
 test('pdf family section has one column each for spouse occupation and for father and mother details', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
     $applicant = makeFullApplicant([

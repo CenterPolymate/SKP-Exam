@@ -302,18 +302,25 @@
                         <th style="width:24%;">วิชาที่ศึกษา/วุฒิที่ได้รับ<br>Course Taken/Completed</th>
                         <th style="width:8%;">เกรด<br>GPA</th>
                     </tr>
-                    @forelse ($applicant->education as $edu)
-                        <tr>
-                            <td class="left">{{ $degreeLevelLabels[$edu->degree_level] ?? $edu->degree_level }}</td>
-                            <td class="left">{{ $edu->institution_name }}</td>
-                            <td>{{ $edu->province_country }}</td>
-                            <td>{{ $edu->start_year }} - {{ $edu->end_year }}</td>
-                            <td class="left">{{ $edu->major }}</td>
-                            <td>{{ $edu->gpa }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="6" class="left" style="color:#a8a29e;">ไม่ได้ระบุข้อมูลการศึกษา</td></tr>
-                    @endforelse
+                    {{-- แสดงครบทุกระดับการศึกษา ระดับที่ไม่ได้กรอกเป็นแถวว่าง --}}
+                    @foreach ($degreeLevelLabels as $levelKey => $levelLabel)
+                        @php $levelRows = $applicant->education->where('degree_level', $levelKey); @endphp
+                        @forelse ($levelRows as $edu)
+                            <tr>
+                                <td class="left">{{ $levelLabel }}</td>
+                                <td class="left">{{ $edu->institution_name }}</td>
+                                <td>{{ $edu->province_country }}</td>
+                                <td>@if ($edu->start_year || $edu->end_year){{ $edu->start_year }} - {{ $edu->end_year }}@endif</td>
+                                <td class="left">{{ $edu->major }}</td>
+                                <td>{{ $edu->gpa }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="left">{{ $levelLabel }}</td>
+                                <td class="left">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td class="left">&nbsp;</td><td>&nbsp;</td>
+                            </tr>
+                        @endforelse
+                    @endforeach
                 </table>
     </div>
 
