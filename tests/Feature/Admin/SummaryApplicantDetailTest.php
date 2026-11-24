@@ -309,8 +309,8 @@ test('pdf does not include the working days and hours section', function () {
 
     expect($html)->not->toContain('Working days and hours')
         ->not->toContain('วันและเวลาปฏิบัติงาน')
-        ->not->toContain('ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริง')
-        ->not->toContain('ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล');
+        ->toContain('ข้าพเจ้าขอรับรองว่าข้อความข้างต้นทั้งหมดนี้เป็นความจริง')
+        ->toContain('ข้าพเจ้าได้อ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคล');
 });
 
 test('pdf employment history always shows four rows with dashes for missing data', function () {
@@ -390,7 +390,7 @@ test('pdf family section has one column each for spouse occupation and for fathe
         ->not->toContain('(47 ปี)');
 });
 
-test('pdf footer: known person shows dash for the missing half, single signature with thai date', function () {
+test('pdf footer: known person shows dash for the missing half, consent first, single signature with thai date', function () {
     $relations = ['position', 'education', 'languages', 'workHistories', 'references', 'documents'];
     $render = fn ($applicant) => view('pdf.application', ['applicant' => $applicant->load($relations)])->render();
     $knownPerson = '/ความสัมพันธ์<\/div><div class="f-value">(.*?)<\/div>/su';
@@ -405,12 +405,13 @@ test('pdf footer: known person shows dash for the missing half, single signature
     preg_match($knownPerson, $render(makeFullApplicant(['known_person_relation' => 'เพื่อน'])), $m);
     expect(trim($m[1]))->toBe('- / เพื่อน');
 
-    // ช่องเซ็นเดียว, วันที่ พ.ศ. (ข้อความรับรอง/ยินยอมถูกเอาออกจาก PDF แล้ว)
+    // ข้อความยินยอม: [ยอมรับแล้ว] อยู่หน้าข้อความ, ช่องเซ็นเดียว, วันที่ พ.ศ.
     $html = $render(makeFullApplicant([
         'data_accuracy_consent' => true, 'privacy_policy_consent' => true,
         'signature_name' => 'ดร. นนทิวัฒน์ เพ็งพันธ์', 'signed_at' => '2026-11-17',
     ]));
-    expect($html)->not->toContain('[ยอมรับแล้ว]')
+    expect($html)->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าขอรับรองว่า/u')
+        ->toMatch('/\[ยอมรับแล้ว\]<\/span>\s*ข้าพเจ้าได้อ่านนโยบาย/u')
         ->toContain('วันที่ 17 พฤศจิกายน พ.ศ. 2569')
         ->and(substr_count($html, "Applicant's Signature"))->toBe(1);
 });
